@@ -2,19 +2,26 @@ package ru.practicum.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.dto.CreatingStatDto;
 import ru.practicum.dto.StatDto;
+import ru.practicum.dto.StatRequest;
 import ru.practicum.exception.StatServiceException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,8 +32,12 @@ public class StatClientImpl implements StatClient {
 
     private final String basicUrl;
 
-    public StatClientImpl(RestTemplate rest, String basicUrl) {
-        this.rest = rest;
+    @Autowired
+    public StatClientImpl(@Value("${stat-server.url}") String basicUrl, RestTemplateBuilder builder) {
+        this.rest = builder
+                .uriTemplateHandler(new DefaultUriBuilderFactory(basicUrl))
+                .requestFactory(HttpComponentsClientHttpRequestFactory::new)
+                .build();
         this.basicUrl = basicUrl;
     }
 
@@ -46,8 +57,14 @@ public class StatClientImpl implements StatClient {
     }
 
     @Override
-    public List<StatDto> get(Map<String, Object> params) {
-        log.info("Отправка запроса на получение статистики с параметрами {}", params);
+    public List<StatDto> get(StatRequest request) {
+        log.info("Отправка запроса на получение статистики с параметрами {}", request.toString());
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", request.getStart());
+        params.put("end", request.getEnd());
+        params.put("uris", request.getUris());
+        params.put("unique", request.getUnique());
+
         ResponseEntity<Object> response = makeAndSendRequest(HttpMethod.GET,
                 basicUrl + "/stats?start={start}&end={end}&&uris={uris}&&unique={unique}",
                 params,
