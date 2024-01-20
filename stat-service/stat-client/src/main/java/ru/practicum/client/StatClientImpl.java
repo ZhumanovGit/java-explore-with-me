@@ -21,6 +21,7 @@ import ru.practicum.dto.StatDto;
 import ru.practicum.dto.StatRequest;
 import ru.practicum.exception.StatServiceException;
 
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,8 +30,8 @@ import java.util.Map;
 @Slf4j
 public class StatClientImpl implements StatClient {
     private final RestTemplate rest;
-
     private final String basicUrl;
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     public StatClientImpl(@Value("${stat-server.url}") String basicUrl, RestTemplateBuilder builder) {
@@ -60,8 +61,8 @@ public class StatClientImpl implements StatClient {
     public List<StatDto> get(StatRequest request) {
         log.info("Отправка запроса на получение статистики с параметрами {}", request.toString());
         Map<String, Object> params = new HashMap<>();
-        params.put("start", request.getStart());
-        params.put("end", request.getEnd());
+        params.put("start", request.getStart().format(FORMATTER));
+        params.put("end", request.getEnd().format(FORMATTER));
         params.put("uris", request.getUris());
         params.put("unique", request.getUnique());
 
