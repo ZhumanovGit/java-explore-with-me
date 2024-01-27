@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.EventShortDto;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,12 +29,14 @@ public class PublicEventController {
                                             @RequestParam(name = "onlyAvailable", required = false, defaultValue = "false") Boolean onlyAvailable,
                                             @RequestParam(name = "sort", required = false) String sort,
                                             @RequestParam(name = "from", required = false, defaultValue = "0") int from,
-                                            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
+                                            @RequestParam(name = "size", required = false, defaultValue = "10") int size,
+                                            HttpServletRequest request) {
         return null;
     }
-
+    // это надо схоранить в стату
     @GetMapping(path = "/{eventId}")
-    public EventShortDto getEvent(@PathVariable(name = "eventId") long eventId) {
+    public EventShortDto getEvent(@PathVariable(name = "eventId") long eventId,
+                                  HttpServletRequest request) {
         return null;
     }
 

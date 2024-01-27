@@ -7,6 +7,7 @@ import ru.practicum.entity.Location;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
@@ -25,10 +26,10 @@ public class NewEventDto {
     private LocalDateTime eventDate;
     @NotNull
     private Location location;
-    private boolean paid;
-    private int participantLimit;
-    @Builder.Default
-    private Boolean requestModeration = true;
+    private Boolean paid;
+    @PositiveOrZero
+    private Integer participantLimit;
+    private Boolean requestModeration;
     @NotBlank
     @Size(min = 3, max = 120)
     private String title;
