@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
+
     @Override
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto dto) {

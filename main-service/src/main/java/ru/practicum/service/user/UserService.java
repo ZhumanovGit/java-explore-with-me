@@ -3,7 +3,6 @@ package ru.practicum.service.user;
 import org.springframework.data.domain.Pageable;
 import ru.practicum.dto.NewUserRequest;
 import ru.practicum.dto.UserDto;
-import ru.practicum.entity.User;
 
 import java.util.List;
 

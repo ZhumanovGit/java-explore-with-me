@@ -33,6 +33,7 @@ public class PublicEventController {
                                             HttpServletRequest request) {
         return null;
     }
+
     // это надо схоранить в стату
     @GetMapping(path = "/{eventId}")
     public EventShortDto getEvent(@PathVariable(name = "eventId") long eventId,

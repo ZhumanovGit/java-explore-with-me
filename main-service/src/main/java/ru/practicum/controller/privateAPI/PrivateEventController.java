@@ -70,7 +70,4 @@ public class PrivateEventController {
     }
 
 
-
-
-
 }

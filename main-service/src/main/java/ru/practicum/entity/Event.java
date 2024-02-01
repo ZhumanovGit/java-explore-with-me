@@ -19,13 +19,14 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "events")
 public class Event {
@@ -80,6 +81,9 @@ public class Event {
     @Column(name = "views", nullable = false)
     private Long views;
 
+    @Column(name = "participants", nullable = false)
+    private Integer participants;
+
     @ManyToMany
     @JoinTable(
             name = "event_compilation",
@@ -87,6 +91,11 @@ public class Event {
             inverseJoinColumns = @JoinColumn(name = "compilation_id"))
     private Set<Compilation> eventCompilations;
 
-
-
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Event event = (Event) o;
+        return Objects.equals(id, event.id);
+    }
 }

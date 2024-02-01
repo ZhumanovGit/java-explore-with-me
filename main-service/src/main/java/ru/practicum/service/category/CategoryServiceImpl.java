@@ -17,6 +17,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
+
     @Override
     public List<CategoryDto> getCategories(Pageable pageable) {
         return repository.findAll(pageable)

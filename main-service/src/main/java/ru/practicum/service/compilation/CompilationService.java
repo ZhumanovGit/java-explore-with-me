@@ -10,11 +10,13 @@ import java.util.List;
 public interface CompilationService {
 
     CompilationDto createCompilation(NewCompilationDto dto);
+
     void deleteCompilation(long compId);
 
     CompilationDto updateCompilation(long compId, UpdateCompilationRequest request);
 
     List<CompilationDto> getCompilations(boolean pinned, Pageable pageable);
+
     CompilationDto getCompilation(long compId);
 
 }
