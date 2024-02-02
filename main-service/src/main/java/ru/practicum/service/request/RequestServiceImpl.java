@@ -12,7 +12,7 @@ import ru.practicum.entity.RequestStatus;
 import ru.practicum.entity.StateStatus;
 import ru.practicum.entity.User;
 import ru.practicum.exception.model.NotFoundException;
-import ru.practicum.exception.model.RequestCreationException;
+import ru.practicum.exception.model.RequestModerationException;
 import ru.practicum.mapper.RequestMapper;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.RequestRepository;
@@ -56,11 +56,17 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException("Event with id=" + eventId + " has no initiator with id=" + userId);
         }
 
-        List<ParticipantRequest> requests = requestRepository.findAllByIdInAndStatusIs(request.getRequestIds(),
-                RequestStatus.PENDING);
+        if (event.getParticipants() >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
+            throw new RequestModerationException("For event with id=" + eventId + " has no available places");
+        }
+
+        List<ParticipantRequest> requests = requestRepository.findAllByIdIn(request.getRequestIds());
         if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
             List<ParticipationRequestDto> updatedRequests = requests.stream()
                     .peek(item -> {
+                        if (item.getStatus() != RequestStatus.PENDING) {
+                            throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
+                        }
                         item.setStatus(RequestStatus.CONFIRMED);
                         event.addParticipant();
                     })
@@ -75,6 +81,9 @@ public class RequestServiceImpl implements RequestService {
         List<ParticipationRequestDto> confirmed = new ArrayList<>();
         List<ParticipationRequestDto> rejected = new ArrayList<>();
         for (ParticipantRequest item : requests) {
+            if (item.getStatus() != RequestStatus.PENDING) {
+                throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
+            }
             if (event.getParticipantLimit() > event.getParticipants()) {
                 item.setStatus(RequestStatus.CONFIRMED);
                 event.addParticipant();
@@ -106,25 +115,25 @@ public class RequestServiceImpl implements RequestService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id =" + eventId + " was not found"));
         if (event.getInitiator().getId() == userId) {
-            throw new RequestCreationException("User with id=" + userId + " is initiator of event with id=" + eventId);
+            throw new RequestModerationException("User with id=" + userId + " is initiator of event with id=" + eventId);
         }
 
         if (event.getState() != StateStatus.PUBLISHED) {
-            throw new RequestCreationException("Event with id=" + eventId + " is not published");
+            throw new RequestModerationException("Event with id=" + eventId + " is not published");
         }
 
         if (event.getParticipants() >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
-            throw new RequestCreationException("For event with id=" + eventId + " has no available places");
+            throw new RequestModerationException("For event with id=" + eventId + " has no available places");
         }
         LocalDateTime now = LocalDateTime.now();
         if (event.getEventDate().isBefore(now)) {
-            throw new RequestCreationException("Event with id=" + eventId + " is already passed");
+            throw new RequestModerationException("Event with id=" + eventId + " is already passed");
         }
 
         Optional<ParticipantRequest> alreadyCreatedRequest = requestRepository
                 .findFirstByRequesterIdAndEventId(userId, eventId);
         if (alreadyCreatedRequest.isPresent()) {
-            throw new RequestCreationException("Request with requesterId=" + userId + " and eventId=" + eventId +
+            throw new RequestModerationException("Request with requesterId=" + userId + " and eventId=" + eventId +
                     " already exists");
         }
 
