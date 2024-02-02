@@ -53,17 +53,14 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto updateCompilation(long compId, UpdateCompilationRequest request) {
         Compilation compilation = compilationRepository.findById(compId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + compId + " was not found"));
-        Boolean pinned = request.getPinned();
-        if (pinned != null) {
-            compilation.setPinned(pinned);
-        }
-        String title = request.getTitle();
-        if (title != null) {
-            compilation.setTitle(title);
-        }
+        Compilation newCompilation = compilation.toBuilder()
+                .pinned(request.getPinned() != null ? request.getPinned() : compilation.getPinned())
+                .title(request.getTitle() != null ? request.getTitle() : compilation.getTitle())
+                .build();
+
         List<Long> eventIds = request.getEvents();
         if (eventIds.isEmpty()) {
-            return CompilationMapper.INSTANCE.compilationToCompilationDto(compilationRepository.save(compilation));
+            return CompilationMapper.INSTANCE.compilationToCompilationDto(compilationRepository.save(newCompilation));
         }
         List<Event> events = eventRepository.findAllByEventCompilationsId(compId);
         if (!events.isEmpty()) {
@@ -74,11 +71,11 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         List<Event> newEvents = eventRepository.findAllByIdIn(eventIds).stream()
-                .peek(event -> event.getEventCompilations().add(compilation))
+                .peek(event -> event.getEventCompilations().add(newCompilation))
                 .collect(Collectors.toList());
         eventRepository.saveAll(newEvents);
 
-        return CompilationMapper.INSTANCE.compilationToCompilationDto(compilationRepository.save(compilation));
+        return CompilationMapper.INSTANCE.compilationToCompilationDto(compilationRepository.save(newCompilation));
     }
 
     @Override

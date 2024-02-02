@@ -98,4 +98,12 @@ public class Event {
         Event event = (Event) o;
         return Objects.equals(id, event.id);
     }
+
+    public void addParticipant() {
+        this.participants ++;
+    }
+
+    public void deleteParticipant() {
+        this.participants --;
+    }
 }

@@ -13,13 +13,14 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.persistence.Table;
+import java.util.Objects;
 import java.util.Set;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Entity
 @Table(name = "compilations")
 public class Compilation {
@@ -35,4 +36,12 @@ public class Compilation {
 
     @ManyToMany(mappedBy = "eventCompilations")
     private Set<Event> events;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Compilation compilation = (Compilation) o;
+        return Objects.equals(id, compilation.id);
+    }
 }

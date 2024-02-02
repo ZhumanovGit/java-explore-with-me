@@ -201,7 +201,8 @@ public class EventServiceImpl implements EventService {
             expression.and(QEvent.event.eventDate.before(searchRangeEnd));
         }
         if (request.getOnlyAvailable()) {
-            expression.and(QEvent.event.participants.lt(QEvent.event.participantLimit));
+            expression.and(QEvent.event.participants.lt(QEvent.event.participantLimit)
+                    .or(QEvent.event.participantLimit.eq(0)));
         }
         Page<Event> events = eventRepository.findAll(expression, pageable);
         return events.stream()

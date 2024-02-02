@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface RequestService {
 
-    ParticipationRequestDto getUserStatusForEvent(long userId, long eventId);
+    List<ParticipationRequestDto> getRequestsForEvent(long userId, long eventId);
 
     EventRequestStatusUpdateResult updateRequestStatusesForEvent(long userId,
                                                                  long eventId,
