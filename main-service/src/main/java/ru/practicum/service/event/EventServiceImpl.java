@@ -27,6 +27,7 @@ import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,7 +124,14 @@ public class EventServiceImpl implements EventService {
         if (!searchUsers.isEmpty()) {
             expression.and(QEvent.event.initiator.id.in(searchUsers));
         }
-        List<StateStatus> searchStatuses = request.getStates();
+        List<StateStatus> searchStatuses = new ArrayList<>();
+        List<String> states = request.getStates();
+        if (states != null) {
+            for (String state : request.getStates()) {
+                searchStatuses.add(StateStatus.from(state)
+                        .orElseThrow(() -> new IllegalArgumentException("State with name = " + state + " was not found")));
+            }
+        }
         if (!searchStatuses.isEmpty()) {
             expression.and(QEvent.event.state.in(searchStatuses));
         }

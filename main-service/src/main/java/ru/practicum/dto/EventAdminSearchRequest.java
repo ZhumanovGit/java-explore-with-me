@@ -17,7 +17,7 @@ import java.util.List;
 @Builder
 public class EventAdminSearchRequest {
     private List<Long> users;
-    private List<StateStatus> states;
+    private List<String> states;
     private List<Long> categories;
     private LocalDateTime rangeStart;
     private LocalDateTime rangeEnd;
