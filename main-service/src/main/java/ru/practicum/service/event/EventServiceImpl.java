@@ -19,7 +19,7 @@ import ru.practicum.entity.QEvent;
 import ru.practicum.entity.StateStatus;
 import ru.practicum.entity.User;
 import ru.practicum.entity.UserStateAction;
-import ru.practicum.exception.model.EventModificationException;
+import ru.practicum.exception.model.EventModerationException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.repository.CategoryRepository;
@@ -52,7 +52,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto createNewEvent(long userId, NewEventDto dto) {
         LocalDateTime minimalDate = dto.getEventDate().plusHours(2);
         if (minimalDate.isAfter(LocalDateTime.now())) {
-            throw new EventModificationException("EventDate must be earlier than 2 hours before now");
+            throw new EventModerationException("EventDate must be earlier than 2 hours before now");
         }
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
@@ -75,14 +75,14 @@ public class EventServiceImpl implements EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
         if (event.getState() == StateStatus.PUBLISHED) {
-            throw new EventModificationException("Event must not be modified after publication");
+            throw new EventModerationException("Event must not be modified after publication");
         }
         LocalDateTime eventDate = request.getEventDate();
         if (eventDate != null) {
             event.setEventDate(eventDate);
         }
         if (event.getEventDate().plusHours(2).isAfter(LocalDateTime.now())) {
-            throw new EventModificationException("EventDate must be earlier than 2 hours before now");
+            throw new EventModerationException("EventDate must be earlier than 2 hours before now");
         }
         Event newEvent = event.toBuilder()
                 .annotation(request.getAnnotation() != null ? request.getAnnotation() : event.getAnnotation())
@@ -109,7 +109,7 @@ public class EventServiceImpl implements EventService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
         if (newEvent.getInitiator().getId() != userId) {
-            throw new EventModificationException("This user was no privileges for this action");
+            throw new EventModerationException("This user was no privileges for this action");
         }
         Event updatedEvent = eventRepository.save(newEvent);
         return EventMapper.INSTANCE.eventToEventFullDto(updatedEvent);
@@ -149,17 +149,17 @@ public class EventServiceImpl implements EventService {
         StateStatus currentStatus = event.getState();
         AdminStateAction action = request.getStateAction();
         if (currentStatus == StateStatus.PUBLISHED && action == AdminStateAction.REJECT_EVENT) {
-            throw new EventModificationException("Event must not be rejected after publication");
+            throw new EventModerationException("Event must not be rejected after publication");
         }
         if (currentStatus != StateStatus.PENDING && action == AdminStateAction.PUBLISH_EVENT) {
-            throw new EventModificationException("Event is not ready for publication");
+            throw new EventModerationException("Event is not ready for publication");
         }
         LocalDateTime eventDate = request.getEventDate();
         if (eventDate != null) {
             event.setEventDate(eventDate);
         }
         if (event.getEventDate().plusHours(1).isAfter(LocalDateTime.now()) && action == AdminStateAction.PUBLISH_EVENT) {
-            throw new EventModificationException("EventDate must be earlier than 1 hour before publication");
+            throw new EventModerationException("EventDate must be earlier than 1 hour before publication");
         }
         Event newEvent = event.toBuilder()
                 .annotation(request.getAnnotation() != null ? request.getAnnotation() : event.getAnnotation())

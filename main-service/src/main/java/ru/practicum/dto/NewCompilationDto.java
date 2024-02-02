@@ -12,7 +12,7 @@ import java.util.List;
 public class NewCompilationDto {
     private List<Long> events;
     private Boolean pinned;
-    @NotBlank
-    @Size(min = 1, max = 50)
+    @NotBlank(message = "Field: title. Error: title must not be blank")
+    @Size(min = 1, max = 50, message = "Field: title. Error: title length must be at least 1, at most 50")
     private final String title;
 }
