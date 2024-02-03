@@ -2,15 +2,24 @@ package ru.practicum.controller.publicAPI;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.client.StatClient;
+import ru.practicum.dto.CreatingStatDto;
+import ru.practicum.dto.EventFullDto;
+import ru.practicum.dto.EventPublicSearchRequest;
 import ru.practicum.dto.EventShortDto;
+import ru.practicum.entity.EventSort;
+import ru.practicum.service.event.EventService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController
@@ -18,8 +27,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class PublicEventController {
+    private final EventService service;
+    private final StatClient client;
 
-    // это надо сохранить в стату
     @GetMapping
     public List<EventShortDto> searchEvents(@RequestParam(name = "text", required = false) String text,
                                             @RequestParam(name = "categories", required = false) List<Long> categories,
@@ -27,18 +37,45 @@ public class PublicEventController {
                                             @RequestParam(name = "rangeStart", required = false) LocalDateTime rangeStart,
                                             @RequestParam(name = "rangeEnd", required = false) LocalDateTime rangeEnd,
                                             @RequestParam(name = "onlyAvailable", required = false, defaultValue = "false") Boolean onlyAvailable,
-                                            @RequestParam(name = "sort", required = false) String sort,
+                                            @RequestParam(name = "sort", required = false, defaultValue = "EVENT_DATE") String sort,
                                             @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                             @RequestParam(name = "size", required = false, defaultValue = "10") int size,
                                             HttpServletRequest request) {
-        return null;
+        log.info("Обработка запроса на получение событий с параметрами text = {}, categories = {}, paid = {}, rangeStart = {}, " +
+                        "rangeEnd = {}, onlyAvailable = {}, sort = {}, from = {}, size = {}", text, categories, paid, rangeStart, rangeEnd,
+                onlyAvailable, sort, from, size);
+        EventSort sortParam = EventSort.from(sort)
+                .orElseThrow(() -> new IllegalArgumentException("Wrong sort param. Value: " + sort));
+        Sort needSort;
+        if (sortParam == EventSort.EVENT_DATE) {
+            needSort = Sort.by(Sort.Direction.DESC, "eventDate");
+        } else {
+            needSort = Sort.by(Sort.Direction.DESC, "views");
+        }
+        PageRequest pageRequest = PageRequest.of(from / size, size, needSort);
+        EventPublicSearchRequest searchParams = new EventPublicSearchRequest(text, categories, paid, rangeStart, rangeEnd, onlyAvailable);
+        List<EventShortDto> result = service.getEvents(searchParams, pageRequest);
+        log.info("Получен список длиной {}", result.size());
+        client.postHit(new CreatingStatDto("main-service",
+                request.getRequestURI(),
+                request.getRemoteAddr(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        log.info("Отправлен запрос на сервер статистики для сохранения хита");
+        return result;
     }
 
-    // это надо схоранить в стату
     @GetMapping(path = "/{eventId}")
-    public EventShortDto getEvent(@PathVariable(name = "eventId") long eventId,
-                                  HttpServletRequest request) {
-        return null;
+    public EventFullDto getEvent(@PathVariable(name = "eventId") long eventId,
+                                 HttpServletRequest request) {
+        log.info("Обработка запроса на получение события с id = {}", eventId);
+        EventFullDto result = service.getEventById(eventId);
+        log.info("Получено событие с id = {}", result.getId());
+        client.postHit(new CreatingStatDto("main-service",
+                request.getRequestURI(),
+                request.getRemoteAddr(),
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+        log.info("Отправлен запрос на сервер статистики для сохранения хита");
+        return result;
     }
 
 }

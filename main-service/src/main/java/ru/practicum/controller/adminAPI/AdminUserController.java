@@ -35,7 +35,7 @@ public class AdminUserController {
                                   @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                   @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         log.info("Обработка запроса на получение пользователей с параметрами ids = {}, from = {}, size = {}", ids, from, size);
-        PageRequest pageRequest = PageRequest.of(from/size, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size);
         List<UserDto> result = service.getUsers(ids, pageRequest);
         log.info("Получен список длиной {}", result.size());
         return result;

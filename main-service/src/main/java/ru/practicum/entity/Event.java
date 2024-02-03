@@ -100,10 +100,14 @@ public class Event {
     }
 
     public void addParticipant() {
-        this.participants ++;
+        this.participants++;
     }
 
     public void deleteParticipant() {
-        this.participants --;
+        this.participants--;
+    }
+
+    public void addView() {
+        this.views++;
     }
 }

@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import ru.practicum.exception.StatServiceException;
 import ru.practicum.exception.model.ApiError;
 import ru.practicum.exception.model.EventModerationException;
 import ru.practicum.exception.model.NotFoundException;

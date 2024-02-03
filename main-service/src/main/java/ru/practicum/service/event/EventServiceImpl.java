@@ -212,7 +212,10 @@ public class EventServiceImpl implements EventService {
             expression.and(QEvent.event.participants.lt(QEvent.event.participantLimit)
                     .or(QEvent.event.participantLimit.eq(0)));
         }
-        Page<Event> events = eventRepository.findAll(expression, pageable);
+        List<Event> events = eventRepository.findAll(expression, pageable).stream()
+                .peek(Event::addView)
+                .collect(Collectors.toList());
+        eventRepository.saveAll(events);
         return events.stream()
                 .map(EventMapper.INSTANCE::eventToEventShortDto)
                 .collect(Collectors.toList());
@@ -222,6 +225,8 @@ public class EventServiceImpl implements EventService {
     public EventFullDto getEventById(long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
+        event.addView();
+        eventRepository.save(event);
         return EventMapper.INSTANCE.eventToEventFullDto(event);
     }
 }

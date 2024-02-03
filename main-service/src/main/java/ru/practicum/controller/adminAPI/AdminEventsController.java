@@ -14,13 +14,10 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.practicum.dto.EventAdminSearchRequest;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.UpdateEventAdminRequest;
-import ru.practicum.entity.Event;
-import ru.practicum.entity.StateStatus;
 import ru.practicum.service.event.EventService;
 
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -40,7 +37,7 @@ public class AdminEventsController {
                                            @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                            @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         log.info("Обработка запроса на поиск ивентов для админа с параметрами users = {}, states = {}, categories = {}, " +
-                "rangeStart = {}, rangeEnd = {}, from = {}, size = {}", users, states, categories, rangeStart, rangeEnd,
+                        "rangeStart = {}, rangeEnd = {}, from = {}, size = {}", users, states, categories, rangeStart, rangeEnd,
                 from, size);
         EventAdminSearchRequest request = new EventAdminSearchRequest(users, states, categories, rangeStart, rangeEnd);
         PageRequest pageRequest = PageRequest.of(from / size, size);

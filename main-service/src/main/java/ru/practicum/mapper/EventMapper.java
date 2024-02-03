@@ -29,6 +29,7 @@ public interface EventMapper {
 
     @Mapping(target = "initiator.id", source = "initiator.id")
     @Mapping(target = "initiator.name", source = "initiator.name")
+    @Mapping(target = "confirmedRequests", source = "participants")
     EventShortDto eventToEventShortDto(Event event);
 
 
@@ -36,6 +37,7 @@ public interface EventMapper {
     @Mapping(target = "initiator.name", source = "event.initiator.name")
     @Mapping(target = "location.lat", source = "event.lat")
     @Mapping(target = "location.lon", source = "event.lon")
+    @Mapping(target = "confirmedRequests", source = "participants")
     EventFullDto eventToEventFullDto(Event event);
 
     @BeforeMapping

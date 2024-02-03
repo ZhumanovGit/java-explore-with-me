@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.entity.StateStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
