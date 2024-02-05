@@ -36,7 +36,7 @@ services:
     environment:
       - STATS_SRV_HOST=stat-server
       - STATS_SRV_PORT=9090
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ewm
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
       - SPRING_DATASOURCE_USERNAME=ewm_user
       - SPRING_DATASOURCE_PASSWORD=ewm_password
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
