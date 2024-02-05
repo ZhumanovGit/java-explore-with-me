@@ -1,6 +1,6 @@
 version: '3.1'
 services:
-  stat-server:
+  stats-server:
     build: ./stat-service/stat-server
     image: explore-with-me-stat
     container_name: explore-with-me-stat
@@ -24,15 +24,15 @@ services:
       - POSTGRES_USER=stat
       - POSTGRES_PASSWORD=stat
 
-  main-service:
+  ewm-service:
     build: ./main-service
-    image: explore-with-me-main
-    container_name: explore-with-me-main
+    image: ewm-service
+    container_name: ewm-service
     ports:
       - "8080:8080"
     depends_on:
-      - basic-db
-      - stat-server
+      - ewm-db
+      - stats-server
     environment:
       - STATS_SRV_HOST=stat-server
       - STATS_SRV_PORT=9090
@@ -41,9 +41,9 @@ services:
       - SPRING_DATASOURCE_PASSWORD=ewm_password
       - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
 
-  basic-db:
+  ewm-db:
     image: postgres:14-alpine
-    container_name: basic-db
+    container_name: ewm-db
     ports:
       - "6542:5432"
     environment:
