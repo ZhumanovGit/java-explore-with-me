@@ -14,6 +14,8 @@ import ru.practicum.mapper.CompilationMapper;
 import ru.practicum.repository.CompilationRepository;
 import ru.practicum.repository.EventRepository;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,8 +29,13 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDto createCompilation(NewCompilationDto dto) {
         Compilation compilation = CompilationMapper.INSTANCE.newCompilationDtoToCompilation(dto);
+        CompilationMapper.INSTANCE.fillNeedAttributes(dto, compilation);
+        List<Event> events = new ArrayList<>();
+        if (dto.getEvents() != null) {
+            events = eventRepository.findAllByIdIn(dto.getEvents());
+            compilation.setEvents(new HashSet<>(events));
+        }
         Compilation newCompilation = compilationRepository.save(compilation);
-        List<Event> events = eventRepository.findAllByIdIn(dto.getEvents());
         if (!events.isEmpty()) {
             List<Event> newEvents = events.stream()
                     .peek(event -> event.getEventCompilations().add(newCompilation))
@@ -59,7 +66,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .build();
 
         List<Long> eventIds = request.getEvents();
-        if (eventIds.isEmpty()) {
+        if (eventIds == null) {
             return CompilationMapper.INSTANCE.compilationToCompilationDto(compilationRepository.save(newCompilation));
         }
         List<Event> events = eventRepository.findAllByEventCompilationsId(compId);

@@ -53,6 +53,7 @@ public class PrivateEventController {
     public EventFullDto postNewEvent(@PathVariable(name = "userId") long userId,
                                      @Valid @RequestBody NewEventDto dto) {
         log.info("Обработка запроса на создание нового события пользоветем с id = {}", userId);
+        log.info("Тело запроса: {}", dto);
         EventFullDto result = eventService.createNewEvent(userId, dto);
         log.info("Создано событие с id = {}", result.getId());
         return result;
@@ -72,6 +73,7 @@ public class PrivateEventController {
                                    @PathVariable(name = "eventId") long eventId,
                                    @Valid @RequestBody UpdateEventUserRequest eventUpdates) {
         log.info("Обработка запроса на обновление события c id = {} пользоватем с id = {}", eventId, userId);
+        log.info("Тело запроса: {}", eventUpdates);
         EventFullDto result = eventService.updateEvent(userId, eventId, eventUpdates);
         log.info("Обновлено событие с id = {}", result.getId());
         return result;

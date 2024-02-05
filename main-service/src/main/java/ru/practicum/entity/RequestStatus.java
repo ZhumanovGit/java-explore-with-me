@@ -3,5 +3,6 @@ package ru.practicum.entity;
 public enum RequestStatus {
     CONFIRMED,
     REJECTED,
-    PENDING
+    PENDING,
+    CANCELED
 }

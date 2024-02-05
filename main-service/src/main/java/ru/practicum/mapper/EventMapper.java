@@ -25,6 +25,8 @@ public interface EventMapper {
     @Mapping(target = "initiator.name", source = "user.name")
     @Mapping(target = "initiator.email", source = "user.email")
     @Mapping(target = "category", ignore = true)
+    @Mapping(target = "eventDate", source = "dto.eventDate", dateFormat = "yyyy-MM-dd HH:mm:ss")
+    @Mapping(target = "id", ignore = true)
     Event newEventDtoToEvent(NewEventDto dto, User user);
 
     @Mapping(target = "initiator.id", source = "initiator.id")
@@ -45,6 +47,7 @@ public interface EventMapper {
         event.setCreatedOn(LocalDateTime.now());
         event.setState(StateStatus.PENDING);
         event.setViews(0L);
+        event.setCreatedOn(LocalDateTime.now());
         event.setParticipants(0);
         if (dto.getPaid() == null) {
             event.setPaid(false);

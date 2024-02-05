@@ -3,6 +3,7 @@ package ru.practicum.controller.adminAPI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -40,7 +41,7 @@ public class AdminEventsController {
                         "rangeStart = {}, rangeEnd = {}, from = {}, size = {}", users, states, categories, rangeStart, rangeEnd,
                 from, size);
         EventAdminSearchRequest request = new EventAdminSearchRequest(users, states, categories, rangeStart, rangeEnd);
-        PageRequest pageRequest = PageRequest.of(from / size, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "id"));
         List<EventFullDto> result = service.searchEventsByAdmin(request, pageRequest);
         log.info("Получен список длиной {}", result.size());
         return result;

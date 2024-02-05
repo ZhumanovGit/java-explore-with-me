@@ -10,6 +10,7 @@ import javax.validation.constraints.Size;
 @Data
 @Builder
 public class NewUserRequest {
+    @NotBlank(message = "Field: email. Error: email must not be null")
     @Email(message = "Field: email. Error: email must match the pattern")
     @Size(min = 6, max = 254, message = "Field: email. Error: email length must be at least 6, at most 254")
     private String email;

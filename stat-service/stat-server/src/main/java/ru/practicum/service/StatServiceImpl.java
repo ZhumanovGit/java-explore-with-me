@@ -3,16 +3,17 @@ package ru.practicum.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.StatMapper;
 import ru.practicum.dto.CreatingStatDto;
 import ru.practicum.dto.StatDto;
+import ru.practicum.exception.model.BadRequestException;
+import ru.practicum.mapper.StatMapper;
 import ru.practicum.model.Stat;
 import ru.practicum.model.ViewStat;
 import ru.practicum.storage.StatRepository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -23,21 +24,21 @@ public class StatServiceImpl implements StatService {
     @Override
     @Transactional
     public void createNewStatRecord(CreatingStatDto dto) {
-        Stat stat = mapper.creatingDtoToStat(dto);
+        Stat stat = mapper.dtoToStat(dto);
         repository.save(stat);
     }
 
     @Override
-    @Transactional
-    public List<StatDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+    public List<StatDto> getStats(LocalDateTime start, LocalDateTime end, Collection<String> uris, Boolean unique) {
+        if (start.equals(end) || start.isAfter(end)) {
+            throw new BadRequestException("Start can be before end");
+        }
         List<ViewStat> stats;
         if (unique) {
-            stats = repository.countUniqueHitsByAppAndUriForPeriod(start, end, uris);
+            stats = repository.countUniqueHits(start, end, uris);
         } else {
-            stats = repository.countHitsByAppAndUriForPeriod(start, end, uris);
+            stats = repository.countHits(start, end, uris);
         }
-        return stats.stream()
-                .map(mapper::viewStatToStatDto)
-                .collect(Collectors.toList());
+        return mapper.listViewStatToListDto(stats);
     }
 }

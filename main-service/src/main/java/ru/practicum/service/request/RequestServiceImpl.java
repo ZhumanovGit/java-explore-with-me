@@ -80,6 +80,13 @@ public class RequestServiceImpl implements RequestService {
         }
         List<ParticipationRequestDto> confirmed = new ArrayList<>();
         List<ParticipationRequestDto> rejected = new ArrayList<>();
+        if (request.getStatus() == RequestStatus.REJECTED) {
+            for (ParticipantRequest item : requests) {
+                item.setStatus(RequestStatus.REJECTED);
+                rejected.add(RequestMapper.INSTANCE.requestToRequestDto(item));
+            }
+            return new EventRequestStatusUpdateResult(confirmed, rejected);
+        }
         for (ParticipantRequest item : requests) {
             if (item.getStatus() != RequestStatus.PENDING) {
                 throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
@@ -143,7 +150,9 @@ public class RequestServiceImpl implements RequestService {
                 .event(event)
                 .status(event.getRequestModeration() ? RequestStatus.PENDING : RequestStatus.CONFIRMED)
                 .build();
-
+        if (event.getParticipantLimit() == 0) {
+            request.setStatus(RequestStatus.CONFIRMED);
+        }
         if (request.getStatus() == RequestStatus.CONFIRMED) {
             event.addParticipant();
             eventRepository.save(event);
@@ -166,7 +175,8 @@ public class RequestServiceImpl implements RequestService {
             event.deleteParticipant();
             eventRepository.save(event);
         }
-        requestRepository.deleteById(requestId);
+        request.setStatus(RequestStatus.CANCELED);
+        requestRepository.save(request);
         return RequestMapper.INSTANCE.requestToRequestDto(request);
     }
 }

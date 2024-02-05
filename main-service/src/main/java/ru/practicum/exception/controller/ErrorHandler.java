@@ -3,10 +3,13 @@ package ru.practicum.exception.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.exception.model.ApiError;
+import ru.practicum.exception.model.DataConnectivityException;
 import ru.practicum.exception.model.EventModerationException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.exception.model.RequestModerationException;
@@ -19,7 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@ControllerAdvice(basePackages = "ru.practicum")
+@RestControllerAdvice
 @Slf4j
 public class ErrorHandler {
     @ExceptionHandler(NotFoundException.class)
@@ -28,7 +31,7 @@ public class ErrorHandler {
         log.warn("NotFoundException, {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.NOT_FOUND)
-                .reason(e.getCause().toString())
+                .reason("Data was not found")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -52,13 +55,35 @@ public class ErrorHandler {
         return error;
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+        log.warn("MethodArgumentNotValidException, {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
+        log.warn("MissingServletRequestParameterException, {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
     @ExceptionHandler(EventModerationException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleEventModerationException(final EventModerationException e) {
         log.warn("EventModerationException, {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.CONFLICT)
-                .reason(e.getCause().toString())
+                .reason("Problem with moderation of Event")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -71,7 +96,7 @@ public class ErrorHandler {
         log.warn("RequestModerationException {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.CONFLICT)
-                .reason(e.getCause().toString())
+                .reason("Error with request moderation")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
@@ -84,6 +109,30 @@ public class ErrorHandler {
         return ApiError.builder()
                 .status(HttpStatus.CONFLICT)
                 .reason(e.getCause().toString())
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleIllegalArgumentException(final IllegalArgumentException e) {
+        log.warn("IllegalArgumentException, {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.BAD_REQUEST)
+                .reason("Wrong data parameters")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    @ExceptionHandler(DataConnectivityException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleDataConnectivityException(final DataConnectivityException e) {
+        log.warn("DataConnectivityException, {}", e.getMessage());
+        return ApiError.builder()
+                .status(HttpStatus.CONFLICT)
+                .reason("This object cant be deleted cause of connects to another data")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();

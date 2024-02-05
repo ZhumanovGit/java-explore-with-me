@@ -91,23 +91,11 @@ public class Event {
             inverseJoinColumns = @JoinColumn(name = "compilation_id"))
     private Set<Compilation> eventCompilations;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Event event = (Event) o;
-        return Objects.equals(id, event.id);
-    }
-
     public void addParticipant() {
         this.participants++;
     }
 
     public void deleteParticipant() {
         this.participants--;
-    }
-
-    public void addView() {
-        this.views++;
     }
 }

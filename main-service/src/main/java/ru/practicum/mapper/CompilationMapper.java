@@ -1,12 +1,16 @@
 package ru.practicum.mapper;
 
+import org.mapstruct.BeforeMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 import ru.practicum.config.IgnoreUnmappedMapperConfig;
 import ru.practicum.dto.CompilationDto;
 import ru.practicum.dto.NewCompilationDto;
 import ru.practicum.entity.Compilation;
+
+import java.util.HashSet;
 
 @Mapper(config = IgnoreUnmappedMapperConfig.class)
 public interface CompilationMapper {
@@ -16,4 +20,12 @@ public interface CompilationMapper {
     Compilation newCompilationDtoToCompilation(NewCompilationDto dto);
 
     CompilationDto compilationToCompilationDto(Compilation compilation);
+
+    @BeforeMapping
+    default void fillNeedAttributes(NewCompilationDto dto, @MappingTarget Compilation compilation) {
+        if (dto.getPinned() == null) {
+            compilation.setPinned(false);
+        }
+        compilation.setEvents(new HashSet<>());
+    }
 }

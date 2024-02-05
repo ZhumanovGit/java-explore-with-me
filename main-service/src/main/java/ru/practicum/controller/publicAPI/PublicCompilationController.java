@@ -35,7 +35,7 @@ public class PublicCompilationController {
     public CompilationDto getCompilation(@PathVariable(name = "compId") Long compId) {
         log.info("Обработка запроса на получение подборки с id = {}", compId);
         CompilationDto result = service.getCompilation(compId);
-        log.info("Получена подборка из {} событий", result.getEvents().size());
+        log.info("Получена подборка c id = {} из {} событий",result.getId(), result.getEvents().size());
         return result;
     }
 }

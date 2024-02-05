@@ -1,5 +1,6 @@
 package ru.practicum.client;
 
+import org.springframework.http.ResponseEntity;
 import ru.practicum.dto.CreatingStatDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.dto.StatRequest;
@@ -9,5 +10,5 @@ import java.util.List;
 public interface StatClient {
     void postHit(CreatingStatDto dto);
 
-    List<StatDto> get(StatRequest request);
+    ResponseEntity<List<StatDto>> get(StatRequest request);
 }

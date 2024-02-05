@@ -1,6 +1,6 @@
 package ru.practicum.entity;
 
 public enum UserStateAction {
-    SEND_REVIEW,
+    SEND_TO_REVIEW,
     CANCEL_REVIEW
 }

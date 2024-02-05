@@ -7,9 +7,12 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.dto.CategoryDto;
 import ru.practicum.dto.NewCategoryDto;
 import ru.practicum.entity.Category;
+import ru.practicum.entity.Event;
+import ru.practicum.exception.model.DataConnectivityException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.CategoryMapper;
 import ru.practicum.repository.CategoryRepository;
+import ru.practicum.repository.EventRepository;
 
 import java.util.List;
 
@@ -17,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
+    private final EventRepository eventRepository;
 
     @Override
     public List<CategoryDto> getCategories(Pageable pageable) {
@@ -44,6 +48,10 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(long catId) {
         repository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
+        List<Event> events = eventRepository.findByCategoryId(catId);
+        if (!events.isEmpty()) {
+            throw new DataConnectivityException("Category with id=" + catId + " has events");
+        }
         repository.deleteById(catId);
     }
 

@@ -28,7 +28,6 @@ import java.util.List;
 @Slf4j
 public class PublicEventController {
     private final EventService service;
-    private final StatClient client;
 
     @GetMapping
     public List<EventShortDto> searchEvents(@RequestParam(name = "text", required = false) String text,
@@ -44,6 +43,7 @@ public class PublicEventController {
         log.info("Обработка запроса на получение событий с параметрами text = {}, categories = {}, paid = {}, rangeStart = {}, " +
                         "rangeEnd = {}, onlyAvailable = {}, sort = {}, from = {}, size = {}", text, categories, paid, rangeStart, rangeEnd,
                 onlyAvailable, sort, from, size);
+        log.info("uri: {}", request.getRequestURI());
         EventSort sortParam = EventSort.from(sort)
                 .orElseThrow(() -> new IllegalArgumentException("Wrong sort param. Value: " + sort));
         Sort needSort;
@@ -56,25 +56,16 @@ public class PublicEventController {
         EventPublicSearchRequest searchParams = new EventPublicSearchRequest(text, categories, paid, rangeStart, rangeEnd, onlyAvailable);
         List<EventShortDto> result = service.getEvents(searchParams, pageRequest);
         log.info("Получен список длиной {}", result.size());
-        client.postHit(new CreatingStatDto("main-service",
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        log.info("Отправлен запрос на сервер статистики для сохранения хита");
         return result;
     }
 
     @GetMapping(path = "/{eventId}")
     public EventFullDto getEvent(@PathVariable(name = "eventId") long eventId,
                                  HttpServletRequest request) {
+        log.info("uri: {}", request.getRequestURI());
         log.info("Обработка запроса на получение события с id = {}", eventId);
         EventFullDto result = service.getEventById(eventId);
         log.info("Получено событие с id = {}", result.getId());
-        client.postHit(new CreatingStatDto("main-service",
-                request.getRequestURI(),
-                request.getRemoteAddr(),
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
-        log.info("Отправлен запрос на сервер статистики для сохранения хита");
         return result;
     }
 
