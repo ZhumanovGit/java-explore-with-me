@@ -34,10 +34,10 @@ public class StatInterceptor implements HandlerInterceptor {
         if (response.getStatus() >= 200 && response.getStatus() < 300) {
             String requestURI = request.getRequestURI();
             if (isObserved(requestURI)) {
-                 client.postHit( new CreatingStatDto("main-service",
-                                 requestURI,
-                                 request.getRemoteAddr(),
-                                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
+                client.postHit(new CreatingStatDto("main-service",
+                        requestURI,
+                        request.getRemoteAddr(),
+                        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))));
             }
         }
     }

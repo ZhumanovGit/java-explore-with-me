@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.client.StatClient;
-import ru.practicum.dto.CreatingStatDto;
 import ru.practicum.dto.EventFullDto;
 import ru.practicum.dto.EventPublicSearchRequest;
 import ru.practicum.dto.EventShortDto;
@@ -19,7 +17,6 @@ import ru.practicum.service.event.EventService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @RestController

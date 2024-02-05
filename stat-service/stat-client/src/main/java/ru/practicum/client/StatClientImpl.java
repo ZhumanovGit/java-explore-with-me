@@ -1,6 +1,5 @@
 package ru.practicum.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,7 +82,8 @@ public class StatClientImpl implements StatClient {
                 basicUrl + sb,
                 params,
                 null,
-                new ParameterizedTypeReference<>() {});
+                new ParameterizedTypeReference<>() {
+                });
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new StatServiceException("Ошибка при получении списка статистики. Код ошибки: " +
                     response.getStatusCode());

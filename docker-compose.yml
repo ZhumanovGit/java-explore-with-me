@@ -24,27 +24,29 @@ services:
       - POSTGRES_USER=stat
       - POSTGRES_PASSWORD=stat
 
-#  basic-service:
-#    build: ./basic-service
-#    image: explore-with-me-basic
-#    container_name: explore-with-me-basic
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - basic-db
-#    environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ewm
-#      - SPRING_DATASOURCE_USERNAME=ewm_user
-#      - SPRING_DATASOURCE_PASSWORD=ewm_password
-#      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-#
-#  basic-db:
-#    image: postgres:14-alpine
-#    container_name: basic-db
-#    ports:
-#      - "6543:5432"
-#    environment:
-#      - POSTGRES_DB=ewm
-#      - POSTGRES_USER=ewm_user
-#      - POSTGRES_PASSWORD=ewm_password
+  main-service:
+    build: ./main-service
+    image: explore-with-me-main
+    container_name: explore-with-me-main
+    ports:
+      - "8080:8080"
+    depends_on:
+      - basic-db
+      - stat-server
+    environment:
+      - STAT-SERVER_URL=http://stat-server:9090
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ewm
+      - SPRING_DATASOURCE_USERNAME=ewm_user
+      - SPRING_DATASOURCE_PASSWORD=ewm_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+
+  basic-db:
+    image: postgres:14-alpine
+    container_name: basic-db
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_DB=ewm
+      - POSTGRES_USER=ewm_user
+      - POSTGRES_PASSWORD=ewm_password
 

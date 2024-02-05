@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -271,7 +270,7 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
 
         ResponseEntity<List<StatDto>> stats = statClient.get(new StatRequest(defaultStart,
-                        LocalDateTime.now(), uris, true));
+                LocalDateTime.now(), uris, true));
         if (stats.getBody() == null) {
             return new HashMap<>();
         }

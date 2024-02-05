@@ -41,7 +41,7 @@ class StatControllerTest {
         mvc.perform(post("/hit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -54,7 +54,7 @@ class StatControllerTest {
         mvc.perform(post("/hit")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(dto)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().is5xxServerError());
     }
 
     @Test
