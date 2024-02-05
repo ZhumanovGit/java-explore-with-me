@@ -36,12 +36,4 @@ public class Compilation {
 
     @ManyToMany(mappedBy = "eventCompilations")
     private Set<Event> events;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Compilation compilation = (Compilation) o;
-        return Objects.equals(id, compilation.id);
-    }
 }
