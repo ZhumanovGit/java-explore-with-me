@@ -34,7 +34,7 @@ services:
       - ewm-db
       - stats-server
     environment:
-      - STATS_SRV_HOST=stat-server
+      - STATS_SRV_HOST=stats-server
       - STATS_SRV_PORT=9090
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
       - SPRING_DATASOURCE_USERNAME=ewm_user
