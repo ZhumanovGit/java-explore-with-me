@@ -3,6 +3,7 @@ package ru.practicum.controller.adminAPI;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,7 +36,7 @@ public class AdminUserController {
                                   @RequestParam(name = "from", required = false, defaultValue = "0") int from,
                                   @RequestParam(name = "size", required = false, defaultValue = "10") int size) {
         log.info("Обработка запроса на получение пользователей с параметрами ids = {}, from = {}, size = {}", ids, from, size);
-        PageRequest pageRequest = PageRequest.of(from / size, size);
+        PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.ASC, "id"));
         List<UserDto> result = service.getUsers(ids, pageRequest);
         log.info("Получен список длиной {}", result.size());
         return result;

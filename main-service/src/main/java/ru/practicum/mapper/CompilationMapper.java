@@ -4,7 +4,6 @@ import org.mapstruct.BeforeMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.config.IgnoreUnmappedMapperConfig;
 import ru.practicum.dto.CompilationDto;
 import ru.practicum.dto.NewCompilationDto;

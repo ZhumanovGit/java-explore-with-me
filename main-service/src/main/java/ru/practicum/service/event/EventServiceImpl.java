@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatClient;
@@ -68,6 +67,7 @@ public class EventServiceImpl implements EventService {
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
+        log.info("im working");
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         Map<Long, Long> eventsViews = getViews(eventIds);
         List<Event> filledEvents = events.stream()
@@ -269,10 +269,6 @@ public class EventServiceImpl implements EventService {
         if (searchRangeEnd != null && searchRangeStart != null && searchRangeStart.isAfter(searchRangeEnd)) {
             throw new IllegalArgumentException("start moment must be before end moment");
         }
-        if (request.getOnlyAvailable()) {
-            expression.and(QEvent.event.participants.lt(QEvent.event.participantLimit)
-                    .or(QEvent.event.participantLimit.eq(0)));
-        }
         List<Event> events = eventRepository.findAll(expression, pageable).stream()
                 .collect(Collectors.toList());
         List<Long> eventIds = events.stream()
@@ -280,6 +276,14 @@ public class EventServiceImpl implements EventService {
                 .collect(Collectors.toList());
         Map<Long, Long> eventsViews = getViews(eventIds);
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
+        if (request.getOnlyAvailable() != null && request.getOnlyAvailable()) {
+            return events.stream()
+                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
+                    .map(eventMapper::eventToEventShortDto)
+                    .collect(Collectors.toList());
+        }
         return events.stream()
                 .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
                 .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
@@ -327,17 +331,19 @@ public class EventServiceImpl implements EventService {
     }
 
     private Map<Long, Integer> getParticipants(List<Long> eventIds) {
-        List<ParticipantRequest> participants = requestRepository.
-                findAllByEventIdInAndStatusIs(eventIds, RequestStatus.CONFIRMED);
+        List<ParticipantRequest> participants = requestRepository
+                .findAllByEventIdInAndStatusIs(eventIds, RequestStatus.CONFIRMED);
         Map<Long, Integer> eventsParticipants = new HashMap<>();
-        for (ParticipantRequest participant : participants) {
-            Long eventId = participant.getEvent().getId();
-            Integer currentParticipants = eventsParticipants.get(eventId);
-            if (currentParticipants == null) {
-                eventsParticipants.put(eventId, 1);
-            } else {
-                currentParticipants++;
-                eventsParticipants.put(eventId, currentParticipants);
+        if (!participants.isEmpty()) {
+            for (ParticipantRequest participant : participants) {
+                Long eventId = participant.getEvent().getId();
+                Integer currentParticipants = eventsParticipants.get(eventId);
+                if (currentParticipants == null) {
+                    eventsParticipants.put(eventId, 1);
+                } else {
+                    currentParticipants++;
+                    eventsParticipants.put(eventId, currentParticipants);
+                }
             }
         }
         return eventsParticipants;

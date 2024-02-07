@@ -1,7 +1,6 @@
 package ru.practicum.mapper;
 
 import org.mapstruct.Mapper;
-import org.mapstruct.factory.Mappers;
 import ru.practicum.config.IgnoreUnmappedMapperConfig;
 import ru.practicum.dto.NewUserRequest;
 import ru.practicum.dto.UserDto;

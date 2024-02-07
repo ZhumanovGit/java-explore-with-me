@@ -93,7 +93,7 @@ public class RequestServiceImpl implements RequestService {
         }
         int enablePlaces = event.getParticipantLimit() - currentParticipants;
         if (enablePlaces >= requests.size()) {
-            for(ParticipantRequest item : requests) {
+            for (ParticipantRequest item : requests) {
                 if (item.getStatus() != RequestStatus.PENDING) {
                     throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
                 }
