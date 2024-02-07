@@ -15,9 +15,8 @@ import ru.practicum.entity.User;
 
 import java.time.LocalDateTime;
 
-@Mapper(config = IgnoreUnmappedMapperConfig.class)
+@Mapper(config = IgnoreUnmappedMapperConfig.class, componentModel = "spring")
 public interface EventMapper {
-    EventMapper INSTANCE = Mappers.getMapper(EventMapper.class);
 
     @Mapping(target = "lat", source = "dto.location.lat")
     @Mapping(target = "lon", source = "dto.location.lon")

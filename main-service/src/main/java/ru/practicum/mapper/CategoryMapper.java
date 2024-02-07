@@ -7,9 +7,8 @@ import ru.practicum.dto.CategoryDto;
 import ru.practicum.dto.NewCategoryDto;
 import ru.practicum.entity.Category;
 
-@Mapper(config = IgnoreUnmappedMapperConfig.class)
+@Mapper(config = IgnoreUnmappedMapperConfig.class, componentModel = "spring")
 public interface CategoryMapper {
-    CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
 
     Category newCategoryDtoToCategory(NewCategoryDto dto);
 

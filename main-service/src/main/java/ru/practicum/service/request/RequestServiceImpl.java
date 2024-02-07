@@ -30,6 +30,7 @@ public class RequestServiceImpl implements RequestService {
     private final RequestRepository requestRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
+    private final RequestMapper requestMapper;
 
     @Override
     public List<ParticipationRequestDto> getRequestsForEvent(long userId, long eventId) {
@@ -41,7 +42,7 @@ public class RequestServiceImpl implements RequestService {
         List<ParticipantRequest> requests = requestRepository.findAllByEventIdAndEventInitiatorId(eventId, userId);
 
         return requests.stream()
-                .map(RequestMapper.INSTANCE::requestToRequestDto)
+                .map(requestMapper::requestToRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -56,25 +57,28 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException("Event with id=" + eventId + " has no initiator with id=" + userId);
         }
 
-        if (event.getParticipants() >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
+        Integer currentParticipants = getParticipantsForEvent(eventId);
+        if (currentParticipants >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
             throw new RequestModerationException("For event with id=" + eventId + " has no available places");
         }
 
         List<ParticipantRequest> requests = requestRepository.findAllByIdIn(request.getRequestIds());
         if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
-            List<ParticipationRequestDto> updatedRequests = requests.stream()
+            List<ParticipantRequest> updatedRequests = requests.stream()
                     .peek(item -> {
                         if (item.getStatus() != RequestStatus.PENDING) {
                             throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
                         }
                         item.setStatus(RequestStatus.CONFIRMED);
-                        event.addParticipant();
                     })
-                    .map(RequestMapper.INSTANCE::requestToRequestDto)
+
                     .collect(Collectors.toList());
-            eventRepository.save(event);
+            requestRepository.saveAll(updatedRequests);
+            List<ParticipationRequestDto> result = updatedRequests.stream()
+                    .map(requestMapper::requestToRequestDto)
+                    .collect(Collectors.toList());
             return EventRequestStatusUpdateResult.builder()
-                    .confirmedRequests(updatedRequests)
+                    .confirmedRequests(result)
                     .build();
 
         }
@@ -83,24 +87,41 @@ public class RequestServiceImpl implements RequestService {
         if (request.getStatus() == RequestStatus.REJECTED) {
             for (ParticipantRequest item : requests) {
                 item.setStatus(RequestStatus.REJECTED);
-                rejected.add(RequestMapper.INSTANCE.requestToRequestDto(item));
+                rejected.add(requestMapper.requestToRequestDto(item));
             }
             return new EventRequestStatusUpdateResult(confirmed, rejected);
         }
-        for (ParticipantRequest item : requests) {
+        int enablePlaces = event.getParticipantLimit() - currentParticipants;
+        if (enablePlaces >= requests.size()) {
+            for(ParticipantRequest item : requests) {
+                if (item.getStatus() != RequestStatus.PENDING) {
+                    throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
+                }
+                item.setStatus(RequestStatus.CONFIRMED);
+                confirmed.add(requestMapper.requestToRequestDto(item));
+            }
+            return new EventRequestStatusUpdateResult(confirmed, rejected);
+        }
+
+        for (int i = 0; i <= enablePlaces; i++) {
+            ParticipantRequest item = requests.get(i);
             if (item.getStatus() != RequestStatus.PENDING) {
                 throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
             }
-            if (event.getParticipantLimit() > event.getParticipants()) {
-                item.setStatus(RequestStatus.CONFIRMED);
-                event.addParticipant();
-                confirmed.add(RequestMapper.INSTANCE.requestToRequestDto(item));
-            } else {
-                item.setStatus(RequestStatus.REJECTED);
-                rejected.add(RequestMapper.INSTANCE.requestToRequestDto(item));
+            item.setStatus(RequestStatus.CONFIRMED);
+            confirmed.add(requestMapper.requestToRequestDto(item));
+        }
+        for (int i = enablePlaces + 1; i < requests.size(); i++) {
+            ParticipantRequest item = requests.get(i);
+            if (item.getStatus() != RequestStatus.PENDING) {
+                throw new RequestModerationException("Request with id=" + item.getId() + " has wrong status");
             }
+            item.setStatus(RequestStatus.REJECTED);
+            rejected.add(requestMapper.requestToRequestDto(item));
         }
         return new EventRequestStatusUpdateResult(confirmed, rejected);
+
+
     }
 
     @Override
@@ -110,7 +131,7 @@ public class RequestServiceImpl implements RequestService {
 
         List<ParticipantRequest> requests = requestRepository.findAllByRequesterId(userId);
         return requests.stream()
-                .map(RequestMapper.INSTANCE::requestToRequestDto)
+                .map(requestMapper::requestToRequestDto)
                 .collect(Collectors.toList());
     }
 
@@ -129,7 +150,7 @@ public class RequestServiceImpl implements RequestService {
             throw new RequestModerationException("Event with id=" + eventId + " is not published");
         }
 
-        if (event.getParticipants() >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
+        if (getParticipantsForEvent(eventId) >= event.getParticipantLimit() && event.getParticipantLimit() != 0) {
             throw new RequestModerationException("For event with id=" + eventId + " has no available places");
         }
         LocalDateTime now = LocalDateTime.now();
@@ -153,13 +174,9 @@ public class RequestServiceImpl implements RequestService {
         if (event.getParticipantLimit() == 0) {
             request.setStatus(RequestStatus.CONFIRMED);
         }
-        if (request.getStatus() == RequestStatus.CONFIRMED) {
-            event.addParticipant();
-            eventRepository.save(event);
-        }
         ParticipantRequest createdRequest = requestRepository.save(request);
 
-        return RequestMapper.INSTANCE.requestToRequestDto(createdRequest);
+        return requestMapper.requestToRequestDto(createdRequest);
     }
 
     @Override
@@ -170,13 +187,14 @@ public class RequestServiceImpl implements RequestService {
 
         ParticipantRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Request with id=" + requestId + " was not found"));
-        if (request.getStatus() == RequestStatus.CONFIRMED) {
-            Event event = request.getEvent();
-            event.deleteParticipant();
-            eventRepository.save(event);
-        }
+
         request.setStatus(RequestStatus.CANCELED);
         requestRepository.save(request);
-        return RequestMapper.INSTANCE.requestToRequestDto(request);
+        return requestMapper.requestToRequestDto(request);
+    }
+
+    private Integer getParticipantsForEvent(long eventId) {
+        List<ParticipantRequest> participants = requestRepository.findAllByEventIdAndStatusIs(eventId, RequestStatus.CONFIRMED);
+        return participants.size();
     }
 }

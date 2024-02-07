@@ -22,7 +22,9 @@ import ru.practicum.dto.UpdateEventUserRequest;
 import ru.practicum.entity.AdminStateAction;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
+import ru.practicum.entity.ParticipantRequest;
 import ru.practicum.entity.QEvent;
+import ru.practicum.entity.RequestStatus;
 import ru.practicum.entity.StateStatus;
 import ru.practicum.entity.User;
 import ru.practicum.entity.UserStateAction;
@@ -31,6 +33,7 @@ import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
+import ru.practicum.repository.RequestRepository;
 import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -53,14 +56,26 @@ public class EventServiceImpl implements EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final RequestRepository requestRepository;
     private final StatClient statClient;
+    private final EventMapper eventMapper;
 
     @Override
     public List<EventShortDto> getUserEvents(long userId, Pageable pageable) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
-        return eventRepository.findAllByInitiatorId(userId, pageable).stream()
-                .map(EventMapper.INSTANCE::eventToEventShortDto)
+        List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+        Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        List<Event> filledEvents = events.stream()
+                .peek(e -> e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0)))
+                .peek(e -> e.setViews(eventsViews.getOrDefault(e.getViews(), 0L)))
+                .collect(Collectors.toList());
+        return filledEvents.stream()
+                .map(eventMapper::eventToEventShortDto)
                 .collect(Collectors.toList());
     }
 
@@ -74,12 +89,12 @@ public class EventServiceImpl implements EventService {
         }
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
-        Event event = EventMapper.INSTANCE.newEventDtoToEvent(dto, initiator);
-        EventMapper.INSTANCE.fillNeedAttributes(dto, event);
+        Event event = eventMapper.newEventDtoToEvent(dto, initiator);
+        eventMapper.fillNeedAttributes(dto, event);
         Category category = categoryRepository.findById(dto.getCategory())
                 .orElseThrow(() -> new NotFoundException("Category with id=" + dto.getCategory() + "was not found"));
         event.setCategory(category);
-        return EventMapper.INSTANCE.eventToEventFullDto(eventRepository.save(event));
+        return eventMapper.eventToEventFullDto(eventRepository.save(event));
     }
 
     @Override
@@ -88,7 +103,11 @@ public class EventServiceImpl implements EventService {
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Event with id=" + eventId + " was not found"));
-        return EventMapper.INSTANCE.eventToEventFullDto(event);
+        Map<Long, Integer> eventParticipants = getParticipants(List.of(eventId));
+        Map<Long, Long> eventViews = getViews(List.of(eventId));
+        event.setParticipants(eventParticipants.getOrDefault(eventId, 0));
+        event.setViews(eventViews.getOrDefault(eventId, 0L));
+        return eventMapper.eventToEventFullDto(event);
     }
 
     @Override
@@ -106,6 +125,12 @@ public class EventServiceImpl implements EventService {
         if (event.getEventDate().minusHours(2L).isBefore(LocalDateTime.now())) {
             throw new EventModerationException("EventDate must be earlier than 2 hours before now");
         }
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
+        if (event.getInitiator().getId() != userId) {
+            throw new EventModerationException("This user was no privileges for this action");
+        }
+
         Event newEvent = event.toBuilder()
                 .annotation(request.getAnnotation() != null ? request.getAnnotation() : event.getAnnotation())
                 .category(request.getCategory() != null ? categoryRepository.findById(request.getCategory())
@@ -128,13 +153,12 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
-        if (newEvent.getInitiator().getId() != userId) {
-            throw new EventModerationException("This user was no privileges for this action");
-        }
         Event updatedEvent = eventRepository.save(newEvent);
-        return EventMapper.INSTANCE.eventToEventFullDto(updatedEvent);
+        Map<Long, Integer> eventParticipants = getParticipants(List.of(eventId));
+        Map<Long, Long> eventViews = getViews(List.of(eventId));
+        updatedEvent.setParticipants(eventParticipants.getOrDefault(eventId, 0));
+        updatedEvent.setViews(eventViews.getOrDefault(eventId, 0L));
+        return eventMapper.eventToEventFullDto(updatedEvent);
     }
 
     @Override
@@ -165,8 +189,15 @@ public class EventServiceImpl implements EventService {
             expression.and(QEvent.event.eventDate.before(searchRangeEnd));
         }
         Page<Event> events = eventRepository.findAll(expression, pageable);
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+        Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
+        Map<Long, Long> eventsViews = getViews(eventIds);
         return events.stream()
-                .map(EventMapper.INSTANCE::eventToEventFullDto)
+                .peek(e -> e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0)))
+                .peek(e -> e.setViews(eventsViews.getOrDefault(e.getId(), 0L)))
+                .map(eventMapper::eventToEventFullDto)
                 .collect(Collectors.toList());
     }
 
@@ -206,7 +237,11 @@ public class EventServiceImpl implements EventService {
                 .publishedOn(request.getStateAction() == AdminStateAction.PUBLISH_EVENT ? LocalDateTime.now() : null)
                 .build();
         Event updatedEvent = eventRepository.save(newEvent);
-        return EventMapper.INSTANCE.eventToEventFullDto(updatedEvent);
+        Map<Long, Integer> eventParticipants = getParticipants(List.of(eventId));
+        Map<Long, Long> eventViews = getViews(List.of(eventId));
+        updatedEvent.setParticipants(eventParticipants.getOrDefault(eventId, 0));
+        updatedEvent.setViews(eventViews.getOrDefault(eventId, 0L));
+        return eventMapper.eventToEventFullDto(updatedEvent);
     }
 
     @Override
@@ -243,10 +278,12 @@ public class EventServiceImpl implements EventService {
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
-        Map<Long, Long> views = getViews(eventIds);
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         return events.stream()
-                .peek(event -> event.setViews(views.getOrDefault(event.getId(), 0L)))
-                .map(EventMapper.INSTANCE::eventToEventShortDto)
+                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .map(eventMapper::eventToEventShortDto)
                 .collect(Collectors.toList());
     }
 
@@ -258,24 +295,26 @@ public class EventServiceImpl implements EventService {
             throw new NotFoundException("Event with id=" + eventId + " was not found");
         }
         Map<Long, Long> views = getViews(List.of(eventId));
+        Map<Long, Integer> participants = getParticipants(List.of(eventId));
         event.setViews(views.getOrDefault(eventId, 0L));
-        return EventMapper.INSTANCE.eventToEventFullDto(event);
+        event.setParticipants(participants.getOrDefault(eventId, 0));
+        return eventMapper.eventToEventFullDto(event);
     }
 
-    public Map<Long, Long> getViews(final List<Long> eventIds) {
+    private Map<Long, Long> getViews(final List<Long> eventIds) {
         Pattern eventPathPattern = Pattern.compile("^/events/(?<id>\\d+)(\\?.+)?$");
         LocalDateTime defaultStart = LocalDateTime.of(2024, 1, 1, 0, 0, 0);
         List<String> uris = eventIds.stream()
                 .map(id -> String.format("/events/%d", id))
                 .collect(Collectors.toList());
 
-        ResponseEntity<List<StatDto>> stats = statClient.get(new StatRequest(defaultStart,
+        List<StatDto> stats = statClient.get(new StatRequest(defaultStart,
                 LocalDateTime.now(), uris, true));
-        if (stats.getBody() == null) {
+        if (stats == null) {
             return new HashMap<>();
         }
 
-        return stats.getBody().stream()
+        return stats.stream()
                 .filter(Objects::nonNull)
                 .filter(dto -> dto.getUri() != null && dto.getHits() != null)
                 .map(viewStatsDto -> parseViewStatsDto.apply(viewStatsDto, eventPathPattern))
@@ -285,6 +324,23 @@ public class EventServiceImpl implements EventService {
                         ParseResult::getId,
                         ParseResult::getViews,
                         Long::sum));
+    }
+
+    private Map<Long, Integer> getParticipants(List<Long> eventIds) {
+        List<ParticipantRequest> participants = requestRepository.
+                findAllByEventIdInAndStatusIs(eventIds, RequestStatus.CONFIRMED);
+        Map<Long, Integer> eventsParticipants = new HashMap<>();
+        for (ParticipantRequest participant : participants) {
+            Long eventId = participant.getEvent().getId();
+            Integer currentParticipants = eventsParticipants.get(eventId);
+            if (currentParticipants == null) {
+                eventsParticipants.put(eventId, 1);
+            } else {
+                currentParticipants++;
+                eventsParticipants.put(eventId, currentParticipants);
+            }
+        }
+        return eventsParticipants;
     }
 
     private final BiFunction<StatDto, Pattern, Optional<ParseResult>> parseViewStatsDto = (dto, regEx) -> {

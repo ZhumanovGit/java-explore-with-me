@@ -10,5 +10,5 @@ import java.util.List;
 public interface StatClient {
     void postHit(CreatingStatDto dto);
 
-    ResponseEntity<List<StatDto>> get(StatRequest request);
+    List<StatDto> get(StatRequest request);
 }

@@ -21,11 +21,12 @@ import java.util.List;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repository;
     private final EventRepository eventRepository;
+    private final CategoryMapper categoryMapper;
 
     @Override
     public List<CategoryDto> getCategories(Pageable pageable) {
         return repository.findAll(pageable)
-                .map(CategoryMapper.INSTANCE::categoryToCategoryDto)
+                .map(categoryMapper::categoryToCategoryDto)
                 .toList();
     }
 
@@ -33,14 +34,14 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDto getCategory(long catId) {
         Category category = repository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
-        return CategoryMapper.INSTANCE.categoryToCategoryDto(category);
+        return categoryMapper.categoryToCategoryDto(category);
     }
 
     @Override
     @Transactional
     public CategoryDto createCategory(NewCategoryDto dto) {
-        Category category = CategoryMapper.INSTANCE.newCategoryDtoToCategory(dto);
-        return CategoryMapper.INSTANCE.categoryToCategoryDto(repository.save(category));
+        Category category = categoryMapper.newCategoryDtoToCategory(dto);
+        return categoryMapper.categoryToCategoryDto(repository.save(category));
     }
 
     @Override
@@ -61,6 +62,6 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = repository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Category with id=" + catId + " was not found"));
         category.setName(dto.getName());
-        return CategoryMapper.INSTANCE.categoryToCategoryDto(repository.save(category));
+        return categoryMapper.categoryToCategoryDto(repository.save(category));
     }
 }

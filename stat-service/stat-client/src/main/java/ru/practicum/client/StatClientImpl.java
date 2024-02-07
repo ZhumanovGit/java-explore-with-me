@@ -50,7 +50,7 @@ public class StatClientImpl implements StatClient {
     }
 
     @Override
-    public ResponseEntity<List<StatDto>> get(StatRequest request) {
+    public List<StatDto> get(StatRequest request) {
         log.info("Отправка запроса на получение статистики с параметрами start = {}, end = {}, uris = {}, unique = {}",
                 request.getStart().format(FORMATTER),
                 request.getEnd().format(FORMATTER),
@@ -76,7 +76,7 @@ public class StatClientImpl implements StatClient {
             throw new StatServiceException("Ошибка при получении списка статистики. Код ошибки: " +
                     response.getStatusCode());
         }
-        return response;
+        return response.getBody();
     }
 
     private <T, R> ResponseEntity<R> makeAndSendRequest(

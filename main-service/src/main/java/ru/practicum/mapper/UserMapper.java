@@ -8,9 +8,8 @@ import ru.practicum.dto.UserDto;
 import ru.practicum.dto.UserShortDto;
 import ru.practicum.entity.User;
 
-@Mapper(config = IgnoreUnmappedMapperConfig.class)
+@Mapper(config = IgnoreUnmappedMapperConfig.class, componentModel = "spring")
 public interface UserMapper {
-    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 
     UserDto userToUserDto(User user);
 

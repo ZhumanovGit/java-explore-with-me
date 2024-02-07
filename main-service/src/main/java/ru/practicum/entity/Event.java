@@ -77,24 +77,7 @@ public class Event {
     @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "views", nullable = false)
     private Long views;
 
-    @Column(name = "participants", nullable = false)
     private Integer participants;
-
-    @ManyToMany
-    @JoinTable(
-            name = "event_compilation",
-            joinColumns = @JoinColumn(name = "event_id"),
-            inverseJoinColumns = @JoinColumn(name = "compilation_id"))
-    private Set<Compilation> eventCompilations;
-
-    public void addParticipant() {
-        this.participants++;
-    }
-
-    public void deleteParticipant() {
-        this.participants--;
-    }
 }

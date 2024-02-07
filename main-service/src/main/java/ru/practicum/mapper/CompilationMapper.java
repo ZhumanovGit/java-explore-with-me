@@ -12,9 +12,8 @@ import ru.practicum.entity.Compilation;
 
 import java.util.HashSet;
 
-@Mapper(config = IgnoreUnmappedMapperConfig.class)
+@Mapper(config = IgnoreUnmappedMapperConfig.class, componentModel = "spring")
 public interface CompilationMapper {
-    CompilationMapper INSTANCE = Mappers.getMapper(CompilationMapper.class);
 
     @Mapping(target = "events", ignore = true)
     Compilation newCompilationDtoToCompilation(NewCompilationDto dto);
