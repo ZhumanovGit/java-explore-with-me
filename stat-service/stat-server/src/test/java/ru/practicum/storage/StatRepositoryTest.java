@@ -11,7 +11,7 @@ import ru.practicum.model.ViewStat;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -26,7 +26,7 @@ class StatRepositoryTest {
         LocalDateTime start = LocalDateTime.of(2020, 1, 1, 1, 1, 1);
         LocalDateTime end = LocalDateTime.of(2021, 1, 1, 1, 1, 1);
 
-        List<ViewStat> stats = repository.countHitsByAppAndUriForPeriod(start, end, null);
+        List<ViewStat> stats = repository.countHits(start, end, null);
 
         assertEquals(0, stats.size());
     }
@@ -54,7 +54,7 @@ class StatRepositoryTest {
                 .timestamp(start.plusDays(4L))
                 .build());
 
-        List<ViewStat> stats = repository.countHitsByAppAndUriForPeriod(start, end, null);
+        List<ViewStat> stats = repository.countHits(start, end, null);
 
         assertEquals(3, stats.size());
     }
@@ -82,7 +82,7 @@ class StatRepositoryTest {
                 .timestamp(start.plusDays(4L))
                 .build());
 
-        List<ViewStat> stats = repository.countHitsByAppAndUriForPeriod(start, end, List.of("test", "test3"));
+        List<ViewStat> stats = repository.countHits(start, end, List.of("test", "test3"));
 
         assertEquals(2, stats.size());
     }
@@ -92,7 +92,7 @@ class StatRepositoryTest {
         LocalDateTime start = LocalDateTime.of(2020, 1, 1, 1, 1, 1);
         LocalDateTime end = LocalDateTime.of(2021, 1, 1, 1, 1, 1);
 
-        List<ViewStat> stats = repository.countUniqueHitsByAppAndUriForPeriod(start, end, null);
+        List<ViewStat> stats = repository.countUniqueHits(start, end, null);
 
         assertEquals(0, stats.size());
     }
@@ -126,7 +126,7 @@ class StatRepositoryTest {
                 .timestamp(start.plusDays(4L))
                 .build());
 
-        List<ViewStat> stats = repository.countUniqueHitsByAppAndUriForPeriod(start, end, null);
+        List<ViewStat> stats = repository.countUniqueHits(start, end, null);
 
         assertEquals(3, stats.size());
     }
@@ -160,7 +160,7 @@ class StatRepositoryTest {
                 .timestamp(start.plusDays(4L))
                 .build());
 
-        List<ViewStat> stats = repository.countUniqueHitsByAppAndUriForPeriod(start, end, List.of("test", "test3"));
+        List<ViewStat> stats = repository.countUniqueHits(start, end, List.of("test", "test3"));
 
         assertEquals(2, stats.size());
     }

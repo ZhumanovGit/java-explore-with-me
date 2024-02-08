@@ -1,6 +1,6 @@
 version: '3.1'
 services:
-  stat-server:
+  stats-server:
     build: ./stat-service/stat-server
     image: explore-with-me-stat
     container_name: explore-with-me-stat
@@ -24,27 +24,29 @@ services:
       - POSTGRES_USER=stat
       - POSTGRES_PASSWORD=stat
 
-#  basic-service:
-#    build: ./basic-service
-#    image: explore-with-me-basic
-#    container_name: explore-with-me-basic
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - basic-db
-#    environment:
-#      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ewm
-#      - SPRING_DATASOURCE_USERNAME=ewm_user
-#      - SPRING_DATASOURCE_PASSWORD=ewm_password
-#      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
-#
-#  basic-db:
-#    image: postgres:14-alpine
-#    container_name: basic-db
-#    ports:
-#      - "6543:5432"
-#    environment:
-#      - POSTGRES_DB=ewm
-#      - POSTGRES_USER=ewm_user
-#      - POSTGRES_PASSWORD=ewm_password
+  ewm-service:
+    build: ./main-service
+    image: ewm-service
+    container_name: ewm-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - ewm-db
+      - stats-server
+    environment:
+      - STATS_URL=http://stats-server:9090
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
+      - SPRING_DATASOURCE_USERNAME=ewm_user
+      - SPRING_DATASOURCE_PASSWORD=ewm_password
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=org.postgresql.Driver
+
+  ewm-db:
+    image: postgres:14-alpine
+    container_name: ewm-db
+    ports:
+      - "6542:5432"
+    environment:
+      - POSTGRES_DB=ewm
+      - POSTGRES_USER=ewm_user
+      - POSTGRES_PASSWORD=ewm_password
 
