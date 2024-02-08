@@ -1,7 +1,6 @@
 package ru.practicum.service.event;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -37,13 +36,11 @@ import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -314,58 +311,33 @@ public class EventServiceImpl implements EventService {
 
         List<StatDto> stats = statClient.get(new StatRequest(defaultStart,
                 LocalDateTime.now(), uris, true));
-        if (stats == null) {
-            return new HashMap<>();
-        }
 
         return stats.stream()
-                .filter(Objects::nonNull)
-                .filter(dto -> dto.getUri() != null && dto.getHits() != null)
-                .map(viewStatsDto -> parseViewStatsDto.apply(viewStatsDto, eventPathPattern))
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toMap(
-                        ParseResult::getId,
-                        ParseResult::getViews,
-                        Long::sum));
+                .map(dto -> {
+                    Matcher matcher = eventPathPattern.matcher(dto.getUri());
+                    if (matcher.matches()) {
+                        Long id = Long.valueOf(matcher.group("id"));
+                        return new AbstractMap.SimpleEntry<>(id, dto.getHits());
+                    }
+                    return null;
+                })
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, Long::sum));
     }
 
     private Map<Long, Integer> getParticipants(List<Long> eventIds) {
         List<ParticipantRequest> participants = requestRepository
                 .findAllByEventIdInAndStatusIs(eventIds, RequestStatus.CONFIRMED);
         Map<Long, Integer> eventsParticipants = new HashMap<>();
-        if (!participants.isEmpty()) {
-            for (ParticipantRequest participant : participants) {
-                Long eventId = participant.getEvent().getId();
-                Integer currentParticipants = eventsParticipants.get(eventId);
-                if (currentParticipants == null) {
-                    eventsParticipants.put(eventId, 1);
-                } else {
-                    currentParticipants++;
-                    eventsParticipants.put(eventId, currentParticipants);
-                }
+        for (ParticipantRequest participant : participants) {
+            Long eventId = participant.getEvent().getId();
+            Integer currentParticipants = eventsParticipants.get(eventId);
+            if (currentParticipants == null) {
+                eventsParticipants.put(eventId, 1);
+            } else {
+                currentParticipants++;
+                eventsParticipants.put(eventId, currentParticipants);
             }
         }
         return eventsParticipants;
-    }
-
-    private final BiFunction<StatDto, Pattern, Optional<ParseResult>> parseViewStatsDto = (dto, regEx) -> {
-        Matcher matcher = regEx.matcher(dto.getUri());
-        if (matcher.matches()) {
-            try {
-                Long id = Long.valueOf(matcher.group("id"));
-                return Optional.of(new ParseResult(id, dto.getHits()));
-            } catch (NumberFormatException ex) {
-                return Optional.empty();
-            }
-        }
-        return Optional.empty();
-    };
-
-    @RequiredArgsConstructor
-    @Getter
-    private static final class ParseResult {
-        private final Long id;
-        private final Long views;
     }
 }
