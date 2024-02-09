@@ -8,30 +8,34 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.client.StatClient;
-import ru.practicum.dto.EventAdminSearchRequest;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventPublicSearchRequest;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.NewEventDto;
 import ru.practicum.dto.StatDto;
 import ru.practicum.dto.StatRequest;
-import ru.practicum.dto.UpdateEventAdminRequest;
-import ru.practicum.dto.UpdateEventUserRequest;
-import ru.practicum.entity.AdminStateAction;
+import ru.practicum.dto.event.EventAdminSearchRequest;
+import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventPublicSearchRequest;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.dto.event.EventSubSearchRequest;
+import ru.practicum.dto.event.NewEventDto;
+import ru.practicum.dto.event.UpdateEventAdminRequest;
+import ru.practicum.dto.event.UpdateEventUserRequest;
 import ru.practicum.entity.Category;
 import ru.practicum.entity.Event;
 import ru.practicum.entity.ParticipantRequest;
 import ru.practicum.entity.QEvent;
-import ru.practicum.entity.RequestStatus;
-import ru.practicum.entity.StateStatus;
+import ru.practicum.entity.Subscription;
 import ru.practicum.entity.User;
-import ru.practicum.entity.UserStateAction;
+import ru.practicum.entity.enums.AdminStateAction;
+import ru.practicum.entity.enums.RequestStatus;
+import ru.practicum.entity.enums.StateStatus;
+import ru.practicum.entity.enums.SubscribeStatus;
+import ru.practicum.entity.enums.UserStateAction;
 import ru.practicum.exception.model.EventModerationException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.EventMapper;
 import ru.practicum.repository.CategoryRepository;
 import ru.practicum.repository.EventRepository;
 import ru.practicum.repository.RequestRepository;
+import ru.practicum.repository.SubscriptionRepository;
 import ru.practicum.repository.UserRepository;
 
 import java.time.LocalDateTime;
@@ -53,6 +57,7 @@ public class EventServiceImpl implements EventService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final RequestRepository requestRepository;
+    private final SubscriptionRepository subscriptionRepository;
     private final StatClient statClient;
     private final EventMapper eventMapper;
 
@@ -266,8 +271,7 @@ public class EventServiceImpl implements EventService {
         if (searchRangeEnd != null && searchRangeStart != null && searchRangeStart.isAfter(searchRangeEnd)) {
             throw new IllegalArgumentException("start moment must be before end moment");
         }
-        List<Event> events = eventRepository.findAll(expression, pageable).stream()
-                .collect(Collectors.toList());
+        Page<Event> events = eventRepository.findAll(expression, pageable);
         List<Long> eventIds = events.stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
@@ -300,6 +304,74 @@ public class EventServiceImpl implements EventService {
         event.setViews(views.getOrDefault(eventId, 0L));
         event.setParticipants(participants.getOrDefault(eventId, 0));
         return eventMapper.eventToEventFullDto(event);
+    }
+
+    @Override
+    public List<EventShortDto> getPublisherEvents(EventSubSearchRequest searchRequest, Pageable pageable) {
+        long followerId = searchRequest.getFollowerId();
+        userRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + followerId + " was not found"));
+        long publisherId = searchRequest.getPublisherId();
+        userRepository.findById(publisherId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + publisherId + "was not found"));
+        BooleanExpression expression = QEvent.event.initiator.id.eq(publisherId);
+        if (searchRequest.getOnlyFuture()) {
+            expression = expression.and(QEvent.event.eventDate.after(LocalDateTime.now()));
+        }
+        Page<Event> events = eventRepository.findAll(expression, pageable);
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
+        if (searchRequest.getOnlyAvailable()) {
+            return events.stream()
+                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
+                    .map(eventMapper::eventToEventShortDto)
+                    .collect(Collectors.toList());
+        }
+        return events.stream()
+                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .map(eventMapper::eventToEventShortDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<EventShortDto> getSubscriptionsEvents(EventSubSearchRequest searchRequest, Pageable pageable) {
+        long followerId = searchRequest.getFollowerId();
+        userRepository.findById(followerId)
+                .orElseThrow(() -> new NotFoundException("User with id=" + followerId + " was not found"));
+        List<Long> publisherIds = subscriptionRepository
+                .findAllByFollowerIdAndStatusIs(followerId, SubscribeStatus.ACTIVE).stream()
+                .map(Subscription::getPublisher)
+                .map(User::getId)
+                .collect(Collectors.toList());
+        BooleanExpression expression = QEvent.event.initiator.id.in(publisherIds);
+        if (searchRequest.getOnlyFuture()) {
+            expression = expression.and(QEvent.event.eventDate.after(LocalDateTime.now()));
+        }
+        Page<Event> events = eventRepository.findAll(expression, pageable);
+        List<Long> eventIds = events.stream()
+                .map(Event::getId)
+                .collect(Collectors.toList());
+        Map<Long, Long> eventsViews = getViews(eventIds);
+        Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
+        if (searchRequest.getOnlyAvailable()) {
+            return events.stream()
+                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
+                    .map(eventMapper::eventToEventShortDto)
+                    .collect(Collectors.toList());
+        }
+        return events.stream()
+                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
+                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .map(eventMapper::eventToEventShortDto)
+                .collect(Collectors.toList());
     }
 
     private Map<Long, Long> getViews(final List<Long> eventIds) {

@@ -1,9 +1,10 @@
-package ru.practicum.dto;
+package ru.practicum.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import ru.practicum.dto.request.ParticipationRequestDto;
 
 import java.util.List;
 

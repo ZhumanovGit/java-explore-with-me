@@ -3,7 +3,7 @@ package ru.practicum.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import ru.practicum.config.IgnoreUnmappedMapperConfig;
-import ru.practicum.dto.ParticipationRequestDto;
+import ru.practicum.dto.request.ParticipationRequestDto;
 import ru.practicum.entity.ParticipantRequest;
 
 @Mapper(config = IgnoreUnmappedMapperConfig.class, componentModel = "spring")

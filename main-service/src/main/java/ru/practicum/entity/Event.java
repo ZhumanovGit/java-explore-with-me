@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import ru.practicum.entity.enums.StateStatus;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

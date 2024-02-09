@@ -5,12 +5,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import ru.practicum.config.IgnoreUnmappedMapperConfig;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.dto.NewEventDto;
+import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.dto.event.NewEventDto;
 import ru.practicum.entity.Event;
-import ru.practicum.entity.StateStatus;
 import ru.practicum.entity.User;
+import ru.practicum.entity.enums.StateStatus;
 
 import java.time.LocalDateTime;
 

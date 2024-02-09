@@ -12,9 +12,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.dto.EventAdminSearchRequest;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.UpdateEventAdminRequest;
+import ru.practicum.dto.event.EventAdminSearchRequest;
+import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.UpdateEventAdminRequest;
 import ru.practicum.service.event.EventService;
 
 import javax.validation.Valid;
