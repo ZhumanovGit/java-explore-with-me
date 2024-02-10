@@ -29,6 +29,7 @@ import ru.practicum.entity.enums.RequestStatus;
 import ru.practicum.entity.enums.StateStatus;
 import ru.practicum.entity.enums.SubscribeStatus;
 import ru.practicum.entity.enums.UserStateAction;
+import ru.practicum.exception.model.BadRequestException;
 import ru.practicum.exception.model.EventModerationException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.EventMapper;
@@ -87,7 +88,7 @@ public class EventServiceImpl implements EventService {
         LocalDateTime minimalDate = LocalDateTime.parse(dto.getEventDate(),
                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         if (minimalDate.minusHours(2L).isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("EventDate must be earlier than 2 hours before now");
+            throw new BadRequestException("EventDate must be earlier than 2 hours before now");
         }
         User initiator = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + userId + " was not found"));
@@ -176,7 +177,7 @@ public class EventServiceImpl implements EventService {
         if (states != null) {
             for (String state : request.getStates()) {
                 searchStatuses.add(StateStatus.from(state)
-                        .orElseThrow(() -> new IllegalArgumentException("State with name = " + state + " was not found")));
+                        .orElseThrow(() -> new BadRequestException("Wrong state status. Value: " + state)));
             }
         }
         if (!searchStatuses.isEmpty()) {
@@ -269,7 +270,7 @@ public class EventServiceImpl implements EventService {
             expression.and(QEvent.event.eventDate.before(searchRangeEnd));
         }
         if (searchRangeEnd != null && searchRangeStart != null && searchRangeStart.isAfter(searchRangeEnd)) {
-            throw new IllegalArgumentException("start moment must be before end moment");
+            throw new BadRequestException("start moment must be before end moment");
         }
         Page<Event> events = eventRepository.findAll(expression, pageable);
         List<Long> eventIds = events.stream()

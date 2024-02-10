@@ -6,6 +6,7 @@ import ru.practicum.dto.subscription.SubscriptionDto;
 import ru.practicum.entity.Subscription;
 import ru.practicum.entity.User;
 import ru.practicum.entity.enums.SubscribeStatus;
+import ru.practicum.exception.model.BadRequestException;
 import ru.practicum.exception.model.NotFoundException;
 import ru.practicum.mapper.SubscriptionMapper;
 import ru.practicum.repository.SubscriptionRepository;
@@ -24,6 +25,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
 
     @Override
     public SubscriptionDto createSubscription(long followerId, long publisherId) {
+        if (followerId == publisherId) {
+            throw new BadRequestException("User can not subscribe to him self");
+        }
         User follower = userRepository.findById(followerId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + followerId + " was not found"));
         User publisher = userRepository.findById(publisherId)

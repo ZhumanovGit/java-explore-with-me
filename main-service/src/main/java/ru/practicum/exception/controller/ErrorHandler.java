@@ -8,11 +8,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.exception.model.ApiError;
-import ru.practicum.exception.model.DataConnectivityException;
-import ru.practicum.exception.model.EventModerationException;
-import ru.practicum.exception.model.NotFoundException;
-import ru.practicum.exception.model.RequestModerationException;
+import ru.practicum.exception.model.*;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
@@ -114,13 +110,13 @@ public class ErrorHandler {
                 .build();
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
+    @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleIllegalArgumentException(final IllegalArgumentException e) {
-        log.warn("IllegalArgumentException, {}", e.getMessage());
+    public ApiError handleBadRequestException(final BadRequestException e) {
+        log.warn("BadRequestException, {}", e.getMessage());
         return ApiError.builder()
                 .status(HttpStatus.BAD_REQUEST)
-                .reason("Wrong data parameters")
+                .reason("Wrong request")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
