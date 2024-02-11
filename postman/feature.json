@@ -870,7 +870,7 @@
 							"    try {\r",
 							"        const user = await api.addUser(rnd.getUser());\r",
 							"        const publisher = await api.addUser(rnd.getUser());\r",
-							"        const secondPublisher = await api.addUser(rnd.User());\r",
+							"        const secondPublisher = await api.addUser(rnd.getUser());\r",
 							"        const subscription = await api.addSubscription(user.id, publisher.id, null);\r",
 							"        const secondSub = await api.addSubscription(user.id, secondPublisher.id, null);\r",
 							"        const category = await api.addCategory(rnd.getCategory());\r",
