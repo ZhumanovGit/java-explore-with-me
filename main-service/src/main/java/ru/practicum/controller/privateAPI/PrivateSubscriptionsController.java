@@ -91,7 +91,7 @@ public class PrivateSubscriptionsController {
                 .onlyFuture(onlyFuture)
                 .onlyAvailable(onlyAvailable)
                 .build();
-        List<EventShortDto> result = eventService.getPublisherEvents(request, pageRequest);
+        List<EventShortDto> result = eventService.getSubscriptionsEvents(request, pageRequest);
         log.info("Получен список длиной {}", result.size());
         return result;
     }

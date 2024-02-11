@@ -315,7 +315,8 @@ public class EventServiceImpl implements EventService {
         long publisherId = searchRequest.getPublisherId();
         userRepository.findById(publisherId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + publisherId + "was not found"));
-        BooleanExpression expression = QEvent.event.initiator.id.eq(publisherId);
+        BooleanExpression expression = QEvent.event.initiator.id.eq(publisherId)
+                .and(QEvent.event.state.eq(StateStatus.PUBLISHED));
         if (searchRequest.getOnlyFuture()) {
             expression = expression.and(QEvent.event.eventDate.after(LocalDateTime.now()));
         }
@@ -350,7 +351,8 @@ public class EventServiceImpl implements EventService {
                 .map(Subscription::getPublisher)
                 .map(User::getId)
                 .collect(Collectors.toList());
-        BooleanExpression expression = QEvent.event.initiator.id.in(publisherIds);
+        BooleanExpression expression = QEvent.event.initiator.id.in(publisherIds)
+                .and(QEvent.event.state.eq(StateStatus.PUBLISHED));
         if (searchRequest.getOnlyFuture()) {
             expression = expression.and(QEvent.event.eventDate.after(LocalDateTime.now()));
         }
