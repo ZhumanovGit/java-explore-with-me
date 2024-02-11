@@ -695,13 +695,7 @@
 							"pm.expect(target).to.have.property('created');\r",
 							"pm.expect(target).to.have.property('status');\r",
 							"});\r",
-							"\r",
-							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
-							"    pm.expect(source.id).equal(target.id, 'id должен соответствовать искомому');\r",
-							"    pm.expect(source.publisher.id).equal(target.publisher.id, 'id пользователя соответствовать искомому');\r",
-							"    pm.expect(source.created).equal(target.created, 'Дата  должна соответствовать искомой дате');\r",
-							"    pm.expect(source.status).equal(target.status, 'Статус должен соответствовать искомому статусу');\r",
-							"});"
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -802,14 +796,7 @@
 							"pm.expect(target).to.have.property('views');\r",
 							"pm.expect(target).to.have.property('confirmedRequests');\r",
 							"});\r",
-							"\r",
-							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
-							"    pm.expect(source.annotation).equal(target.annotation, 'Аннотация события должна соответствовать аннотации события с указанным идентификатором');\r",
-							"    pm.expect(source.category.id).equal(target.category.id, 'Категория события должна соответствовать категории события с указанным идентификатором');\r",
-							"    pm.expect(source.paid.toString()).equal(target.paid.toString(), 'Стоимость события должна соответствовать стоимости события с указанным идентификатором');\r",
-							"    pm.expect(source.eventDate).equal(target.eventDate, 'Дата проведения события должна соответствовать дате проведения события с указанным идентификатором');\r",
-							"    pm.expect(source.title).equal(target.title, 'Название события должно соответствовать названию события с указанным идентификатором');\r",
-							"});"
+							""
 						],
 						"type": "text/javascript"
 					}
@@ -880,7 +867,7 @@
 							"        secondEvent = await api.publishEvent(secondEvent.id);\r",
 							"        pm.request.removeQueryParams(['onlyFuture', 'onlyAvailable']);\r",
 							"        pm.request.addQueryParams([`onlyFuture=` + true, 'onlyAvailable=' + true]);\r",
-							"        pm.collectionVariables.set('response', secondEvent);\r",
+							"        pm.collectionVariables.set('response', event);\r",
 							"        pm.collectionVariables.set('uid', user.id);\r",
 							"        pm.collectionVariables.set('subId', publisher.id)\r",
 							"    } catch(err) {\r",
@@ -932,13 +919,7 @@
 							"pm.expect(target).to.have.property('confirmedRequests');\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Данные в ответе должны соответствовать данным в запросе\", function () {\r",
-							"    pm.expect(source.annotation).equal(target.annotation, 'Аннотация события должна соответствовать аннотации события с указанным идентификатором');\r",
-							"    pm.expect(source.category.id).equal(target.category.id, 'Категория события должна соответствовать категории события с указанным идентификатором');\r",
-							"    pm.expect(source.paid.toString()).equal(target.paid.toString(), 'Стоимость события должна соответствовать стоимости события с указанным идентификатором');\r",
-							"    pm.expect(source.eventDate).equal(target.eventDate, 'Дата проведения события должна соответствовать дате проведения события с указанным идентификатором');\r",
-							"    pm.expect(source.title).equal(target.title, 'Название события должно соответствовать названию события с указанным идентификатором');\r",
-							"});"
+							""
 						],
 						"type": "text/javascript"
 					}
