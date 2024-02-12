@@ -74,8 +74,10 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         Map<Long, Long> eventsViews = getViews(eventIds);
         List<Event> filledEvents = events.stream()
-                .peek(e -> e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0)))
-                .peek(e -> e.setViews(eventsViews.getOrDefault(e.getViews(), 0L)))
+                .peek(e -> {
+                    e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                    e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                })
                 .collect(Collectors.toList());
         return filledEvents.stream()
                 .map(eventMapper::eventToEventShortDto)
@@ -198,8 +200,10 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         Map<Long, Long> eventsViews = getViews(eventIds);
         return events.stream()
-                .peek(e -> e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0)))
-                .peek(e -> e.setViews(eventsViews.getOrDefault(e.getId(), 0L)))
+                .peek(e -> {
+                    e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                    e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                })
                 .map(eventMapper::eventToEventFullDto)
                 .collect(Collectors.toList());
     }
@@ -280,15 +284,19 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         if (request.getOnlyAvailable() != null && request.getOnlyAvailable()) {
             return events.stream()
-                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .peek(e -> {
+                        e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                        e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                    })
                     .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
                     .map(eventMapper::eventToEventShortDto)
                     .collect(Collectors.toList());
         }
         return events.stream()
-                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .peek(e -> {
+                    e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                    e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                })
                 .map(eventMapper::eventToEventShortDto)
                 .collect(Collectors.toList());
     }
@@ -312,11 +320,11 @@ public class EventServiceImpl implements EventService {
         long followerId = searchRequest.getFollowerId();
         userRepository.findById(followerId)
                 .orElseThrow(() -> new NotFoundException("User with id=" + followerId + " was not found"));
-        long publisherId = searchRequest.getPublisherId();
-        userRepository.findById(publisherId)
-                .orElseThrow(() -> new NotFoundException("User with id=" + publisherId + "was not found"));
-        BooleanExpression expression = QEvent.event.initiator.id.eq(publisherId)
-                .and(QEvent.event.state.eq(StateStatus.PUBLISHED));
+        long subscriptionId = searchRequest.getSubscriptionId();
+        Subscription subscription = subscriptionRepository.findById(subscriptionId)
+                .orElseThrow(() -> new NotFoundException("Subscription with id=" + subscriptionId + "was not found"));
+        BooleanExpression expression = QEvent.event.initiator.id.eq(subscription.getPublisher().getId())
+                .and(QEvent.event.state.eq(StateStatus.PUBLISHED));;
         if (searchRequest.getOnlyFuture()) {
             expression = expression.and(QEvent.event.eventDate.after(LocalDateTime.now()));
         }
@@ -328,15 +336,19 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         if (searchRequest.getOnlyAvailable()) {
             return events.stream()
-                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .peek(e -> {
+                        e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                        e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                    })
                     .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
                     .map(eventMapper::eventToEventShortDto)
                     .collect(Collectors.toList());
         }
         return events.stream()
-                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .peek(e -> {
+                    e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                    e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                })
                 .map(eventMapper::eventToEventShortDto)
                 .collect(Collectors.toList());
     }
@@ -364,15 +376,19 @@ public class EventServiceImpl implements EventService {
         Map<Long, Integer> eventsParticipants = getParticipants(eventIds);
         if (searchRequest.getOnlyAvailable()) {
             return events.stream()
-                    .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                    .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                    .peek(e -> {
+                        e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                        e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                    })
                     .filter(event -> event.getParticipantLimit() == 0 || event.getParticipants() < event.getParticipantLimit())
                     .map(eventMapper::eventToEventShortDto)
                     .collect(Collectors.toList());
         }
         return events.stream()
-                .peek(event -> event.setViews(eventsViews.getOrDefault(event.getId(), 0L)))
-                .peek(event -> event.setParticipants(eventsParticipants.getOrDefault(event.getId(), 0)))
+                .peek(e -> {
+                    e.setParticipants(eventsParticipants.getOrDefault(e.getId(), 0));
+                    e.setViews(eventsViews.getOrDefault(e.getViews(), 0L));
+                })
                 .map(eventMapper::eventToEventShortDto)
                 .collect(Collectors.toList());
     }

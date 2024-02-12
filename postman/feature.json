@@ -726,7 +726,7 @@
 			"response": []
 		},
 		{
-			"name": "Получение списка событий определенного пользователя из подписок с фильтрацией",
+			"name": "Получение списка событий опеределенной подписки",
 			"event": [
 				{
 					"listen": "prerequest",
@@ -747,7 +747,7 @@
 							"        pm.request.addQueryParams([`onlyFuture=` + true, 'onlyAvailable=' + true]);\r",
 							"        pm.collectionVariables.set('response', event);\r",
 							"        pm.collectionVariables.set('uid', user.id);\r",
-							"        pm.collectionVariables.set('subId', publisher.id)\r",
+							"        pm.collectionVariables.set('subId', subscription.id)\r",
 							"    } catch(err) {\r",
 							"        console.error(\"Ошибка при подготовке тестовых данных.\", err);\r",
 							"    }\r",
@@ -806,7 +806,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{baseUrl}}/users/:userId/subscriptions/:publisherId/events?onlyFuture=true&onlyAvailable=true",
+					"raw": "{{baseUrl}}/users/:userId/subscriptions/:subscriptionId/events?onlyFuture=true&onlyAvailable=true",
 					"host": [
 						"{{baseUrl}}"
 					],
@@ -814,7 +814,7 @@
 						"users",
 						":userId",
 						"subscriptions",
-						":publisherId",
+						":subscriptionId",
 						"events"
 					],
 					"query": [
@@ -834,9 +834,9 @@
 							"description": "(Required) id подписчика "
 						},
 						{
-							"key": "publisherId",
+							"key": "subscriptionId",
 							"value": "{{subId}}",
-							"description": "(Required) id пользователя"
+							"description": "(Required) id подписки"
 						}
 					]
 				}

@@ -56,19 +56,19 @@ public class PrivateSubscriptionsController {
         return result;
     }
 
-    @GetMapping(path = "/{publisherId}/events")
+    @GetMapping(path = "/{subscriptionId}/events")
     public List<EventShortDto> getPublisherEvents(@PathVariable(name = "userId") long userId,
-                                                  @PathVariable(name = "publisherId") long publisherId,
+                                                  @PathVariable(name = "subscriptionId") long subscriptionId,
                                                   @RequestParam(name = "onlyFuture", required = false, defaultValue = "true") boolean onlyFuture,
                                                   @RequestParam(name = "onlyAvailable", required = false, defaultValue = "false") boolean onlyAvailable,
                                                   @RequestParam(name = "from", required = false, defaultValue = "0") @PositiveOrZero int from,
                                                   @RequestParam(name = "size", required = false, defaultValue = "10") @Positive int size) {
-        log.info("Обработка запроса на получение событий пользователя с id = {} из подписок пользователя с id = {} c параметрами: " +
-                "onlyFuture = {}, onlyAvailable = {}, from = {}, size = {}", publisherId, userId, onlyFuture, onlyAvailable, from, size);
+        log.info("Обработка запроса на получение событий подписки с id = {} из подписок пользователя с id = {} c параметрами: " +
+                "onlyFuture = {}, onlyAvailable = {}, from = {}, size = {}", subscriptionId, userId, onlyFuture, onlyAvailable, from, size);
         PageRequest pageRequest = PageRequest.of(from / size, size, Sort.by(Sort.Direction.DESC, "eventDate"));
         EventSubSearchRequest request = EventSubSearchRequest.builder()
                 .followerId(userId)
-                .publisherId(publisherId)
+                .subscriptionId(subscriptionId)
                 .onlyFuture(onlyFuture)
                 .onlyAvailable(onlyAvailable)
                 .build();

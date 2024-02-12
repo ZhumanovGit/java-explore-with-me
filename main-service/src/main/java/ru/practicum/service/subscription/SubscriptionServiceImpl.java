@@ -48,6 +48,9 @@ public class SubscriptionServiceImpl implements SubscriptionService {
                 .orElseThrow(() -> new NotFoundException("User with id=" + followerId + " was not found"));
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new NotFoundException("Subscription with id=" + subscriptionId + " was not found"));
+        if (subscription.getFollower().getId() != followerId) {
+            throw new BadRequestException("follower with id=" + followerId + "has not subscription with id=" + subscriptionId);
+        }
         subscription.setStatus(SubscribeStatus.CANCELED);
         return mapper.subscriptionToDto(subscriptionRepository.save(subscription));
     }

@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 public class EventSubSearchRequest {
     private Long followerId;
-    private Long publisherId;
+    private Long subscriptionId;
     private Boolean onlyAvailable;
     private Boolean onlyFuture;
 }
