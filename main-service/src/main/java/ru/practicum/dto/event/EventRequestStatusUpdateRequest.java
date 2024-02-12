@@ -1,11 +1,11 @@
-package ru.practicum.dto;
+package ru.practicum.dto.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import ru.practicum.entity.RequestStatus;
+import ru.practicum.entity.enums.RequestStatus;
 
 import java.util.List;
 

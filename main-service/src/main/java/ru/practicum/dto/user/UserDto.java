@@ -1,4 +1,4 @@
-package ru.practicum.dto;
+package ru.practicum.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,17 +6,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class CompilationDto {
-    private List<EventShortDto> events;
-    private final Long id;
-    private final Boolean pinned;
-    private final String title;
-
+public class UserDto {
+    private final String email;
+    private Long id;
+    private final String name;
 }

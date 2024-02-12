@@ -1,4 +1,4 @@
-package ru.practicum.dto;
+package ru.practicum.dto.category;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import lombok.Builder;

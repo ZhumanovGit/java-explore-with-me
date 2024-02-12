@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.dto.EventFullDto;
-import ru.practicum.dto.EventPublicSearchRequest;
-import ru.practicum.dto.EventShortDto;
-import ru.practicum.entity.EventSort;
+import ru.practicum.dto.event.EventFullDto;
+import ru.practicum.dto.event.EventPublicSearchRequest;
+import ru.practicum.dto.event.EventShortDto;
+import ru.practicum.entity.enums.EventSort;
 import ru.practicum.service.event.EventService;
 
 import javax.servlet.http.HttpServletRequest;

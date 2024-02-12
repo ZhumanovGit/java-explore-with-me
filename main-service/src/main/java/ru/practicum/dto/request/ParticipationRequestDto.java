@@ -1,4 +1,4 @@
-package ru.practicum.dto;
+package ru.practicum.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.extern.jackson.Jacksonized;
-import ru.practicum.entity.RequestStatus;
+import ru.practicum.entity.enums.RequestStatus;
 
 import java.time.LocalDateTime;
 
